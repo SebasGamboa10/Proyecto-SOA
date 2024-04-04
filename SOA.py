@@ -121,19 +121,21 @@ def main():
 
 
         elif command == "receive":
-            process_id = input("Ingrese el ID del proceso que recibe el mensaje: ")
-            #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
-            if config.receive_type == 'blocking':
-                received_message = processes[process_id].receive_message_blocking()
-                if received_message:
+                process_id = input("Ingrese el ID del proceso que recibe el mensaje: ")
+                #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
+                if config.receive_type == 'blocking':
+                    # PROPUESTA: if addressing type == indirect, hacemos aquí un send del mailbox a este proc.
+                    received_message = processes[process_id].receive_message_blocking()
+                    if received_message:
+                        print(f"Process {process_id} recibió el mensaje: {received_message}")
+                        processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
+                    else:
+                        print(f"Process {process_id} no recibió ningún mensaje.")
+                else:
+                    # PROPUESTA: lo mismo aqui. y tomamos el validar de quien lo recibimos del message format
+                    received_message = processes[process_id].receive_message_nonblocking()
                     print(f"Process {process_id} recibió el mensaje: {received_message}")
                     processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
-                else:
-                    print(f"Process {process_id} no recibió ningún mensaje.")
-            else:
-                received_message = processes[process_id].receive_message_nonblocking()
-                print(f"Process {process_id} recibió el mensaje: {received_message}")
-                processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
 
 
         elif command == "display":

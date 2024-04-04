@@ -67,7 +67,7 @@ def main():
     processes = {}
     config = configure_system()
     # Create mailbox if required
-    if (config.addressing_type == 'indirect'):
+    if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
         processes['mailbox'] = create_process('Mailbox', 'mailbox', send_block=None, receive_block=None)
     time = 0
     while True: 
@@ -110,8 +110,12 @@ def main():
                     # mailbox (explicit)
                     if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
                         # formato sender_id, rec_id, message
-                        message = '{process_id_send}, {process_id}, ' + message
+                        message = f'{process_id_send}, {process_id}, ' + message
                         processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type)
+                        # PROPUESTA, hacemos el receive del mailbox de una.
+                        received_message = processes['mailbox'].receive_message_nonblocking()
+                        processes['mailbox'].log[time] = 'Recibí mensaje {}'.format(received_message)
+
                     # direct send
                     else:
                         processes[process_id_send].send_message(f"{message}", processes[process_id], blocking=config.receive_type)

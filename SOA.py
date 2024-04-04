@@ -1,9 +1,10 @@
 class SystemConfiguration:
-    def __init__(self, num_processes, message_queue_size, send_type, receive_type, **kwargs):
+    def __init__(self, num_processes, message_queue_size, send_type, receive_type, addressing_type, **kwargs):
         self.num_processes = num_processes
         self.message_queue_size = message_queue_size
         self.send_type = send_type
         self.receive_type = receive_type
+        self.addressing_type = addressing_type
 
 
 class Process:
@@ -57,12 +58,17 @@ def configure_system():
     message_queue_size = int(input("Ingrese el tamaño de la cola de mensajes: "))
     send_type = str(input("El send es blocking o nonblocking: "))
     receive_type = str(input("El receive es blocking o nonblocking: "))
+    addressing_type = str(input("El direccionamiento es directo o indirecto: "))
+    
 
-    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type)
+    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type, addressing_type)
 
 def main():
     processes = {}
     config = configure_system()
+    # Create mailbox if required
+    if (config.addressing_type == 'indirect'):
+        processes['mailbox'] = create_process('Mailbox', 'mailbox', send_block=None, receive_block=None)
     time = 0
     while True: 
         command = input("Ingrese un comando (create, send, receive), 'display' para ver el estado o 'exit' para salir: ")
@@ -75,7 +81,7 @@ def main():
             if config.num_processes > len(processes): 
                 name = input("Ingrese el nombre del proceso: ")
                 process_id = input("Ingrese el ID del proceso: ")
-                send_block = None # aqui sería send_block = send_type? lo mismo abajo, bueno con un if blocking entonces true, y else non blocking
+                send_block = None 
                 receive_block = None
 
                 new_process = create_process(name, process_id, send_block, receive_block)
@@ -93,14 +99,20 @@ def main():
             elif process_id not in processes:
                 print(f"Proceso {process_id} no existe")
             else:
-                send_block = processes[process_id_send].send_block # el comentario de arriba asumiendo que todos los procs tienen el mismo tipo
+
+                send_block = processes[process_id_send].send_block
 
                 if send_block is False or send_block is None:
                     message = input("Ingrese el mensaje: ")
                     processes[process_id_send].log[time] =  'Envié mensaje {} a proc {}'.format(message, process_id)
                     if config.send_type == 'blocking':
                         processes[process_id_send].send_block = True
-                        processes[process_id_send].send_message(f"{message}", processes[process_id], blocking=config.receive_type)
+                    # mailbox (explicit)
+                    if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
+                        # formato sender_id, rec_id, message
+                        message = '{process_id_send}, {process_id}, ' + message
+                        processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type)
+                    # direct send
                     else:
                         processes[process_id_send].send_message(f"{message}", processes[process_id], blocking=config.receive_type)
                 else:

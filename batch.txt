@@ -1,8 +1,9 @@
-3,2,blocking,blocking,indirect,1,dynamic
+3,2,blocking,blocking,direct,1,dynamic
 create,1,1
 create,2,2
-send,1,2,hola,1
-receive,2
+create,3,3
+send,1,2,hola,1,explicito
+receive,2,3
 display
 exit
 

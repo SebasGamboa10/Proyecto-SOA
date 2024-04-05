@@ -24,6 +24,7 @@ class Process:
         self.pid = pid
         self.send_block = send_block
         self.receive_block = receive_block
+        self.receive_block_pid = None
         self.message_queue = []
         self.log = {}
         self.log_queue = {}
@@ -236,18 +237,45 @@ def main():
             elif command == "receive":
                 if batch: 
                     process_id = int(line[1])
+                    if len(line) > 2:
+                        dir_type = 'explicito'
                 else:
                     process_id = input("Ingrese el ID del proceso que recibe el mensaje: ")
                     dir_type = input("Direccionamiento explicito o implicito: ")
-                    if dir_type == explicito:
-                        explicit_dir_type = input("Ingrese el ID del que desea recibir el mensaje: ")
-                
+                    
                 # validacion de existencia
                 if process_id not in processes:
                     print(f"Proceso {process_id} no existe")
+
                 else:
+                    if dir_type == 'explicito':
+                        if batch:
+                            sender = int(line[2])
+                        else:
+                            sender = input("Ingrese el ID del que desea recibir el mensaje: ")
+                        if (processes[process_id].receive_block_pid == None or processes[process_id].receive_block_pid == 'sender'):
+                            # decode queue (por cada mensaje hacer split, tomar el [0] y si es sender, lo movemos al indice 0.)
+                            message_found = False
+                            for message in processes[process_id].message_queue:
+                                split = message[0].split(',')
+                                if split[0] == sender:
+                                    processes[process_id].message_queue.remove(message)
+                                    processes[process_id].message_queue.insert(0, message)
+                                    processes[process_id].receive_block_pid = None
+                                    message_found = True
+                                    break
+                            if message_found == False:
+                                if config.receive_type == 'blocking':
+                                    processes[process_id].receive_block_pid = sender
+                                    processes[process_id].receive_block = True
+                                    print(f'No se recibió ningún mensaje de {sender}') #TODO: log
+                                    continue
+                                else:
+                                    print(f'No se recibió ningún mensaje de {sender}')
+                                    continue
+                    #elif dir_type != 'explicito':
                     #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
-                    if config.receive_type == 'blocking':
+                    if config.receive_type == 'blocking' and processes[process_id].receive_block_pid == None:
                         received_message = processes[process_id].receive_message_blocking()
                         if received_message:
                             print(f"Process {process_id} recibió el mensaje: {received_message}")
@@ -270,7 +298,7 @@ def main():
                             print(f"Process {process_id} no recibió ningún mensaje.")
                             processes[process_id].log[time] =  f'Process {process_id} no recibió ningún mensaje --> Proceso bloquedo por receive'
                     # Non blocking
-                    else:
+                    elif config.receive_type == 'nonblocking':
                         received_message = processes[process_id].receive_message_nonblocking() 
                         if received_message:
                             print(f"Process {process_id} recibió el mensaje: {received_message}")
@@ -287,7 +315,8 @@ def main():
                                     processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
                                     processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
-                    
+                    else:
+                        print('No puede recibir mensajes porque está bloqueado') ## LOG, bloqueado por sender
                     if (config.indirect_addr_type == 'dynanmic'):
                         processes[process_id].log[time] = f'Conexión con Mailbox establecida. ' + processes[process_id].log[time] + ". " + f'Cierre de conexión con Mailbox'
                                                         

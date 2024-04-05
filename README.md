@@ -4,10 +4,11 @@ Este proyecto es parte del curso de Sistemas Operativos Avanzados y ha sido desa
 
 ## Detalles del Proyecto
 
-l proyecto consiste en construir un sistema de simulación que permita:
+El proyecto consiste en construir un sistema de simulación de Message Passing que permita:
 - Configurar el sistema a utilizar seleccionando los parámetros de la tabla anterior, además 
 de otros parámetros generales que puedan ser necesarios (ejemplo, el número de 
 procesos, el tamaño de la cola de mensajes, etc).
+![Texto alternativo](Design Characteristics of Message Systems.jpg)
 - Tener una línea de comandos que permita ejecutar comandos create(), send() y receive(),
 con los parámetros respectivos.
 - Simular la ejecución de los comandos, pudiendo escoger el usuario el momento para ver el 
@@ -18,8 +19,8 @@ se lee la información de archivos de texto).
 
 ## Instrucciones de uso
 
-1. [Proporciona instrucciones claras y concisas sobre cómo instalar y ejecutar tu proyecto]
-2. [Puedes incluir ejemplos de código o comandos]
+
+## Ejemplos
 
 
 ## Contacto

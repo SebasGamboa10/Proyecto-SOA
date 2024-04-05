@@ -136,12 +136,17 @@ def main():
                     else:
                         name = input("Ingrese el nombre del proceso: ")
                         process_id = input("Ingrese el ID del proceso: ")
-                    send_block = None 
-                    receive_block = None
+                    
+                    # validacion de existencia
+                    if process_id  in processes:
+                        print(f"Proceso {process_id} ya existe")
+                    else:
+                        send_block = None 
+                        receive_block = None
 
-                    new_process = create_process(name, process_id, send_block, receive_block, config)
-                    new_process.log[time] = 'Proceso creado'
-                    processes[new_process.pid] = new_process
+                        new_process = create_process(name, process_id, send_block, receive_block, config)
+                        new_process.log[time] = 'Proceso creado'
+                        processes[new_process.pid] = new_process
                 else:
                     print("No es posible agregar procesos, se ha alcanzado el maximo")
 

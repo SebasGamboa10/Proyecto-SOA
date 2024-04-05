@@ -32,6 +32,7 @@ class Process:
                 destination.receive_message_nonblocking(message, priority)
         else:
             print(f'No hay espacio disponible en la cola para enviar mensaje {message}')
+            self.log[max(self.log)] = self.log[max(self.log)] + "\nERROR: COLA ESTABA LLENA"
 
     def receive_message_blocking(self, message=None, priority=0):
         #print(message)

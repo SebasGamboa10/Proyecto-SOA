@@ -1,11 +1,24 @@
 3,2,b,b,indirect
 create,1,1
-create,2,2
-send,1,2,hola,1
-receive,2
+send,1,1,hola
+send,1,1,hola
+send,1,1,hola
+display
+receive,1
+display
+receive,1
+receive,1
 display
 exit
 
 
 formato msg.
 senderID, recID, contenido, prioridad.
+
+3,2,b,b,indirect
+create,1,1
+create,2,2
+send,1,2,hola,1
+receive,2
+display
+exit

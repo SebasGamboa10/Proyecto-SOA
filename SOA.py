@@ -15,22 +15,27 @@ class Message:
         self.priority = priority
 
 class Process:
-    def __init__(self, name, pid, send_block, receive_block):
+    def __init__(self, name, pid, send_block, receive_block, config):
         self.name = name
         self.pid = pid
         self.send_block = send_block
         self.receive_block = receive_block
         self.message_queue = []
         self.log = {}
+        self.config = config
 
     def send_message(self, message, destination, blocking=None, priority=0):
-        if blocking=="blocking":
-            destination.receive_message_blocking(message, priority)
+        if (len(self.message_queue) < self.config.message_queue_size):
+            if blocking=="blocking":
+                destination.receive_message_blocking(message, priority)
+            else:
+                destination.receive_message_nonblocking(message, priority)
         else:
-            destination.receive_message_nonblocking(message, priority)
+            print(f'No hay espacio disponible en la cola para enviar mensaje {message}')
 
     def receive_message_blocking(self, message=None, priority=0):
-        print(message)
+        #print(message)
+        #if (len(self.message_queue) < self.config.message_queue_size):
         if message is not None:
             self.message_queue.append((message, priority))
         elif self.message_queue:
@@ -38,8 +43,13 @@ class Process:
             return self.message_queue.pop(0)[0]
         else:
             return None
+        #else: 
+        #    print(f"No hay espacio en cola disponible para enviar {message}")
+        #    return None
+
 
     def receive_message_nonblocking(self, message=None, priority=0):
+        #if (len(self.message_queue) < self.config.message_queue_size):
         if message:
             self.message_queue.append((message, priority))
         elif self.message_queue:
@@ -47,11 +57,14 @@ class Process:
             return self.message_queue.pop(0)[0]
         else:
             return "No hay mensajes disponibles"
+        #else: 
+        #    print(f"No hay espacio en cola disponible para enviar {message}")
+        #    return self.message_queue.pop(0)
 
 
 
-def create_process(name, pid, send_block, receive_block):
-    return Process(name, pid, send_block, receive_block)
+def create_process(name, pid, send_block, receive_block, config):
+    return Process(name, pid, send_block, receive_block, config)
 
 def display(processes):
     print("Estado del sistema:")
@@ -94,7 +107,7 @@ def main():
 
     # Create mailbox if required
     if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
-        processes['mailbox'] = create_process('Mailbox', 'mailbox', send_block=None, receive_block=None)
+        processes['mailbox'] = create_process('Mailbox', 'mailbox', send_block=None, receive_block=None, config=config)
     
     while True: 
         if batch:
@@ -118,7 +131,7 @@ def main():
                 send_block = None 
                 receive_block = None
 
-                new_process = create_process(name, process_id, send_block, receive_block)
+                new_process = create_process(name, process_id, send_block, receive_block, config)
                 new_process.log[time] = 'Proceso creado'
                 processes[new_process.pid] = new_process
             else:
@@ -224,8 +237,8 @@ def main():
                     #else:
                     if batch:
                         process_id = int(process_id) # en caso de estar en batch, para evitar '2'.
-                    received_message = processes[process_id].receive_message_nonblocking()
-                    if ',' in received_message:
+                    received_message = processes[process_id].receive_message_nonblocking() #TODO: se cae si le metemos un process_id que no existe
+                    if (received_message and (',' in received_message)):
                         split = received_message.split(',')
                         process_id_send_extracted = split[0].strip()
                         processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)

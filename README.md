@@ -8,7 +8,7 @@ El proyecto consiste en construir un sistema de simulación de Message Passing q
 
 - Configurar el sistema a utilizar seleccionando los parámetros de la siguiente tabla, además de otros parámetros generales que puedan ser necesarios como el número de procesos, el tamaño de la cola de mensajes, entre otros.
 
-  ![Diseño de características de sistemas de mensajes](Design Characteristics of Message Systems.jpg)
+  ![Diseño de características de sistemas de mensajes](DesignCharacteristicsofMessageSystems.jpg)
 
 - Tener una línea de comandos que permita ejecutar comandos `create()`, `send()` y `receive()`, con los parámetros respectivos.
 

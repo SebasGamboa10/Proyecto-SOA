@@ -238,6 +238,9 @@ def main():
                     process_id = int(line[1])
                 else:
                     process_id = input("Ingrese el ID del proceso que recibe el mensaje: ")
+                    dir_type = input("Direccionamiento explicito o implicito: ")
+                    if dir_type == explicito:
+                        explicit_dir_type = input("Ingrese el ID del que desea recibir el mensaje: ")
                 
                 # validacion de existencia
                 if process_id not in processes:

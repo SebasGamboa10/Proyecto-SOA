@@ -4,13 +4,14 @@ import os.path
 processes = {}
 
 class SystemConfiguration:
-    def __init__(self, num_processes, message_queue_size, send_type, receive_type, addressing_type, confirmation_of_arrival, **kwargs):
+    def __init__(self, num_processes, message_queue_size, send_type, receive_type, addressing_type, confirmation_of_arrival, indirect_addr_type, **kwargs):
         self.num_processes = num_processes
         self.message_queue_size = message_queue_size
         self.send_type = send_type
         self.receive_type = receive_type
         self.addressing_type = addressing_type
         self.confirmation_of_arrival = confirmation_of_arrival
+        self.indirect_addr_type = indirect_addr_type
 
 class Message:
     def __init__(self, content, priority=0):
@@ -108,10 +109,14 @@ def configure_system():
     message_queue_size = int(input("Ingrese el tamaño de la cola de mensajes: "))
     send_type = str(input("El send es blocking o nonblocking: "))
     receive_type = str(input("El receive es blocking o nonblocking: "))
+    confirmation_of_arrival = bool(input("Desea que se requieran pruebas de llegada de mensajes? (digite 0 para NO y 1 para SI): "))
     addressing_type = str(input("El direccionamiento es directo o indirecto: "))
-    confirmation_of_arrival = bool(input("Desea que se requieran pruebas de llegada de mensajes? (digite 0 para NO y 1 para SI): ")) 
+    if (addressing_type == 'indirecto'):
+        indirect_addr_type = str(input("El direccionamiento indirecto es static o dynamic?"))
+    else:
+        indirect_addr_type = 0
 
-    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type, addressing_type, confirmation_of_arrival)
+    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type, addressing_type, confirmation_of_arrival, indirect_addr_type)
 
 def main():
     while True:
@@ -128,7 +133,7 @@ def main():
         
         if batch:
             line = f.readline().strip().split(',')
-            config = SystemConfiguration(int(line[0]), int(line[1]), line[2], line[3], line[4], line[5])
+            config = SystemConfiguration(int(line[0]), int(line[1]), line[2], line[3], line[4], line[5], line[6])
         else:
             config = configure_system()
 
@@ -203,15 +208,19 @@ def main():
                             #mailbox (explicit)
                             if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
                                 # formato sender_id, rec_id, message
+                                if (config.indirect_addr_type == 'dynamic'):
+                                    processes[process_id_send].log[time] =  'Conexión con Mailbox establecida. ' + processes[process_id_send].log[time] 
+                                # from source to mailbox
                                 processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type, priority=priority)
                                 received_message = processes['mailbox'].receive_message_nonblocking()
                                 processes['mailbox'].log[time] = 'Recibí mensaje {}'.format(received_message)
                                 processes['mailbox'].log_queue[time] = received_message
-                                ##
+                                # from mailbox to destination
                                 processes['mailbox'].send_message(f"{received_message}", processes[process_id], blocking=config.receive_type, priority=priority)
                                 processes['mailbox'].log[time] = processes['mailbox'].log[time] + ". " + 'Envié mensaje {} a proc {}'.format(message, process_id) ##REVISAR LA IMPRESION
                                 processes[process_id].log_queue[time] = received_message
-
+                                if (config.indirect_addr_type == 'dynamic'):
+                                    processes[process_id_send].log[time] = processes[process_id_send].log[time] + '. Conexión con Mailbox cerrada' 
                             # direct send
                             else:
                                 processes[process_id_send].send_message(f"{message}", processes[process_id], blocking=config.receive_type, priority=priority)
@@ -233,7 +242,6 @@ def main():
                 if process_id not in processes:
                     print(f"Proceso {process_id} no existe")
                 else:
-                
                     #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
                     if config.receive_type == 'blocking':
                         received_message = processes[process_id].receive_message_blocking()
@@ -271,6 +279,9 @@ def main():
                                     processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
                                     processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
+                    
+                    if (config.indirect_addr_type == 'dynanmic'):
+                        processes[process_id].log[time] = f'Conexión con Mailbox establecida. ' + processes[process_id].log[time] + ". " + f'Cierre de conexión con Mailbox'
                                                         
             elif command == "display":
                 display(processes)

@@ -24,6 +24,7 @@ class Process:
         self.receive_block = receive_block
         self.message_queue = []
         self.log = {}
+        self.log_queue = {}
         self.config = config
 
     def send_message(self, message, destination, blocking=None, priority=0):
@@ -87,6 +88,14 @@ def display(processes):
         #print(f"log: {proceso.log}")
         for key, value in proceso.log.items():
             print("Timestamp: {} | {}".format(key, value))
+        print('')
+        print('--------Cola del Proceso---------')
+        for key, value in proceso.log_queue.items():
+            print("Timestamp: {} | {}".format(key, value))
+        print('')
+        print('--------Cola Actual del Proceso---------')
+        for message, priority in proceso.message_queue:
+            print(f"Mensaje: {message} | Prioridad: {priority}")
         print('--------------------------------------')
         print('--------------------------------------')
         print('')
@@ -186,6 +195,7 @@ def main():
                             priority = input("Ingrese la prioridad donde 1 es alta y 0 baja: ")
                             message = f'{process_id_send}, {process_id}, ' + message
                         processes[process_id_send].log[time] =  'Envié mensaje {} a proc {}'.format(message, process_id)
+                        processes[process_id].log_queue[time] = message
                         if config.send_type == 'blocking':
                             processes[process_id_send].send_block = True
                         #mailbox (explicit)
@@ -194,10 +204,11 @@ def main():
                             processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type, priority=priority)
                             received_message = processes['mailbox'].receive_message_nonblocking()
                             processes['mailbox'].log[time] = 'Recibí mensaje {}'.format(received_message)
+                            processes['mailbox'].log_queue[time] = received_message
                             ##
                             processes['mailbox'].send_message(f"{received_message}", processes[process_id], blocking=config.receive_type, priority=priority)
-                            processes['mailbox'].log[time] = processes['mailbox'].log[time] + ". " + 'Envié mensaje {} a proc {}'.format(message, process_id)
-
+                            processes['mailbox'].log[time] = processes['mailbox'].log[time] + ". " + 'Envié mensaje {} a proc {}'.format(message, process_id) ##REVISAR LA IMPRESION
+                            processes[process_id].log_queue[time] = received_message
 
                         # direct send
                         else:
@@ -220,59 +231,37 @@ def main():
                 
                     #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
                     if config.receive_type == 'blocking':
-                        # Indirect Explicit
-                        #if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
-                            #if FIFO
-                            # chequeamos si el mensage de mailbox es para process_id
-                            #if (processes['mailbox'].message_queue[0].split(",")[1] == process_id):
-                                #processes['mailbox'].send_message(f"{processes['mailbox'].message_queue[0]}", processes[process_id], blocking=config.receive_type)
-                                # received_message = processes[process_id].receive_message_blocking()
-                                # processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
-                                #processes['mailbox'].log[time] = 'Envié mensaje {} a proc {}'.format(message, process_id)
-                            #else: 
-                                #print(f"Process {process_id} no recibió ningún mensaje.")
-                            # TODO else Priority Queue.
-                        # Direct Rec
-                        #else:
                         received_message = processes[process_id].receive_message_blocking()
                         if received_message:
+                            print(f"Process {process_id} recibió el mensaje: {received_message}")
+                            processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                             if ',' in received_message:
                                 split = received_message.split(',')
                                 process_id_send_extracted = split[0].strip()
                                 processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                                processes[process_id_send_extracted].receive_message_nonblocking()
                                 processes[process_id_send_extracted].send_block = False
-                            print(f"Process {process_id} recibió el mensaje: {received_message}")
-                            processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
+                                processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
+                                processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
+                                processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
                         else:
                             print(f"Process {process_id} no recibió ningún mensaje.")
                     # Non blocking
                     else:
-                        # Indirect Explicit
-                        #if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
-                            #if FIFO
-                            # chequeamos si el mensage de mailbox es para process_id
-                            #print(processes['mailbox'].message_queue)
-                            #if (processes['mailbox'].message_queue[0].split(",")[1] == process_id):
-                                #print(processes['mailbox'].message_queue[0].split(","))
-                                #processes['mailbox'].send_message(f"{processes['mailbox'].message_queue[0]}", processes[process_id], blocking=config.receive_type)
-                                #received_message = processes[process_id].receive_message_nonblocking()
-                                #processes['mailbox'].log[time] = 'Recibí mensaje {}'.format(received_message)
-                                #processes[process_id].log[time] = 'Envié mensaje {} a proc {}'.format(message, process_id)
-                            #else: 
-                                #print(f"Process {process_id} no recibió ningún mensaje.")
-                            # TODO else Priority Queue.
-                        # Direct
-                        #else:
-                        #if batch:
-                        #    process_id = int(process_id) # en caso de estar en batch, para evitar '2'.
-                        received_message = processes[process_id].receive_message_nonblocking() #TODO: se cae si le metemos un process_id que no existe
-                        if (received_message and (',' in received_message)):
-                            split = received_message.split(',')
-                            process_id_send_extracted = split[0].strip()
-                            processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
-                            processes[process_id_send_extracted].send_block = False
-                        print(f"Process {process_id} recibió el mensaje: {received_message}")
-                        processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
+                        received_message = processes[process_id].receive_message_nonblocking() 
+                        if received_message:
+                            print(f"Process {process_id} recibió el mensaje: {received_message}")
+                            processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
+                            if ',' in received_message:
+                                split = received_message.split(',')
+                                process_id_send_extracted = split[0].strip()
+                                processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                                processes[process_id_send_extracted].receive_message_nonblocking()
+                                processes[process_id_send_extracted].send_block = False
+                                processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
+                                processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
+                                processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
+                        
 
 
             elif command == "display":

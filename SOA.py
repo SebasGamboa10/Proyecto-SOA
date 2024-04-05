@@ -38,7 +38,7 @@ class Process:
                 destination.receive_message_nonblocking(message, priority)
         else:
             print(f'No hay espacio disponible en la cola para enviar mensaje {message}')
-            self.log[max(self.log)] = self.log[max(self.log)] + " ERROR: COLA ESTABA LLENA"
+            self.log[max(self.log)] = self.log[max(self.log)] + ". ERROR: COLA ESTABA LLENA"
             
 
     def receive_message_blocking(self, message=None, priority=0):
@@ -193,6 +193,7 @@ def main():
                         if send_block is False or send_block is None:
                             if batch:
                                 message = line[3]
+                                message = f'{process_id_send}, {process_id}, ' + message
                                 if (len(line) == 5):
                                     priority = line[4]
                                 else: 
@@ -250,7 +251,7 @@ def main():
                             processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                             if ',' in received_message:
                                 split = received_message.split(',')
-                                process_id_send_extracted = split[0].strip()
+                                process_id_send_extracted = int(split[0].strip())
                                 if (config.confirmation_of_arrival):
                                     processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                                     processes[process_id_send_extracted].receive_message_nonblocking()
@@ -271,13 +272,13 @@ def main():
                             processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                             if ',' in received_message:
                                 split = received_message.split(',')
-                                process_id_send_extracted = split[0].strip()
+                                process_id_send_extracted = int(split[0].strip())
                                 if (config.confirmation_of_arrival):
                                     processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                                     processes[process_id_send_extracted].receive_message_nonblocking()
                                     processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
                                     processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
-                                    processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
+                                    processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
                     
                     if (config.indirect_addr_type == 'dynanmic'):

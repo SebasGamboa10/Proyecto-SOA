@@ -74,15 +74,23 @@ def create_process(name, pid, send_block, receive_block, config):
 def display(processes):
     print("Estado del sistema:")
     for pid, proceso in processes.items():
-        print('-----------------')
+        print('')
+        print('--------------------------------------')
+        print('--------------------------------------')
+        print('--------Detalles del Proceso---------')
         print(f"ID del proceso: {pid}")
         print(f"Nombre del proceso: {proceso.name}")
-        print(f"Bool Send: {proceso.send_block}")
-        print(f"Bool receive: {proceso.receive_block}")
+        print(f"Send Blocking Estado Actual: {proceso.send_block}")
+        print(f"Receive Blocking Estado Actual: {proceso.receive_block}")
+        print('')
+        print('--------Log del Proceso---------')
         #print(f"log: {proceso.log}")
         for key, value in proceso.log.items():
             print("Timestamp: {} | {}".format(key, value))
-        print('-----------------')
+        print('--------------------------------------')
+        print('--------------------------------------')
+        print('')
+
 
 def configure_system():
     print("Configuración del sistema:")
@@ -141,7 +149,7 @@ def main():
                     if process_id  in processes:
                         print(f"Proceso {process_id} ya existe")
                     else:
-                        send_block = None 
+                        send_block = None
                         receive_block = None
 
                         new_process = create_process(name, process_id, send_block, receive_block, config)
@@ -180,7 +188,7 @@ def main():
                         processes[process_id_send].log[time] =  'Envié mensaje {} a proc {}'.format(message, process_id)
                         if config.send_type == 'blocking':
                             processes[process_id_send].send_block = True
-                        # mailbox (explicit)
+                        #mailbox (explicit)
                         if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
                             # formato sender_id, rec_id, message
                             processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type, priority=priority)
@@ -232,6 +240,7 @@ def main():
                                 split = received_message.split(',')
                                 process_id_send_extracted = split[0].strip()
                                 processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                                processes[process_id_send_extracted].send_block = False
                             print(f"Process {process_id} recibió el mensaje: {received_message}")
                             processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                         else:
@@ -261,6 +270,7 @@ def main():
                             split = received_message.split(',')
                             process_id_send_extracted = split[0].strip()
                             processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                            processes[process_id_send_extracted].send_block = False
                         print(f"Process {process_id} recibió el mensaje: {received_message}")
                         processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
 

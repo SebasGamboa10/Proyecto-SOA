@@ -150,13 +150,13 @@ def main():
                     else:
                         message = input("Ingrese el mensaje: ")
                         priority = input("Ingrese la prioridad donde 1 es alta y 0 baja: ")
+                        message = f'{process_id_send}, {process_id}, ' + message
                     processes[process_id_send].log[time] =  'Envié mensaje {} a proc {}'.format(message, process_id)
                     if config.send_type == 'blocking':
                         processes[process_id_send].send_block = True
                     # mailbox (explicit)
                     if (config.addressing_type == 'indirect' or config.addressing_type == 'i'):
                         # formato sender_id, rec_id, message
-                        message = f'{process_id_send}, {process_id}, ' + message
                         processes[process_id_send].send_message(f"{message}", processes['mailbox'], blocking=config.receive_type, priority=priority)
                         received_message = processes['mailbox'].receive_message_nonblocking()
                         processes['mailbox'].log[time] = 'Recibí mensaje {}'.format(received_message)
@@ -196,6 +196,10 @@ def main():
                     #else:
                     received_message = processes[process_id].receive_message_blocking()
                     if received_message:
+                        if ',' in received_message:
+                            split = received_message.split(',')
+                            process_id_send_extracted = split[0].strip()
+                            processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                         print(f"Process {process_id} recibió el mensaje: {received_message}")
                         processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                     else:
@@ -218,8 +222,13 @@ def main():
                         # TODO else Priority Queue.
                     # Direct
                     #else:
-                    process_id = int(process_id) # en caso de estar en batch, para evitar '2'.
+                    if batch:
+                        process_id = int(process_id) # en caso de estar en batch, para evitar '2'.
                     received_message = processes[process_id].receive_message_nonblocking()
+                    if ',' in received_message:
+                        split = received_message.split(',')
+                        process_id_send_extracted = split[0].strip()
+                        processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                     print(f"Process {process_id} recibió el mensaje: {received_message}")
                     processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
 

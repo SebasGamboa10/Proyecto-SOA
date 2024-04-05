@@ -32,7 +32,7 @@ class Process:
                 destination.receive_message_nonblocking(message, priority)
         else:
             print(f'No hay espacio disponible en la cola para enviar mensaje {message}')
-            self.log[max(self.log)] = self.log[max(self.log)] + "\nERROR: COLA ESTABA LLENA"
+            self.log[max(self.log)] = self.log[max(self.log)] + " ERROR: COLA ESTABA LLENA"
 
     def receive_message_blocking(self, message=None, priority=0):
         #print(message)
@@ -75,7 +75,9 @@ def display(processes):
         print(f"Nombre del proceso: {proceso.name}")
         print(f"Bool Send: {proceso.send_block}")
         print(f"Bool receive: {proceso.receive_block}")
-        print(f"log: {proceso.log}")
+        #print(f"log: {proceso.log}")
+        for key, value in proceso.log.items():
+            print("Timestamp: {} | {}".format(key, value))
         print('-----------------')
 
 def configure_system():

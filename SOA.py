@@ -109,7 +109,7 @@ def configure_system():
     message_queue_size = int(input("Ingrese el tamaño de la cola de mensajes: "))
     send_type = str(input("El send es blocking o nonblocking: "))
     receive_type = str(input("El receive es blocking o nonblocking: "))
-    confirmation_of_arrival = bool(input("Desea que se requieran pruebas de llegada de mensajes? (digite 0 para NO y 1 para SI): "))
+    confirmation_of_arrival = int(input("Desea que se requieran pruebas de llegada de mensajes? (digite 0 para NO y 1 para SI): "))
     addressing_type = str(input("El direccionamiento es directo o indirecto: "))
     if (addressing_type == 'indirecto'):
         indirect_addr_type = str(input("El direccionamiento indirecto es static o dynamic?"))
@@ -251,7 +251,9 @@ def main():
                             processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                             if ',' in received_message:
                                 split = received_message.split(',')
-                                process_id_send_extracted = int(split[0].strip())
+                                process_id_send_extracted = split[0].strip()
+                                if batch:
+                                    process_id_send_extracted = int(split[0].strip())
                                 if (config.confirmation_of_arrival):
                                     processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                                     processes[process_id_send_extracted].receive_message_nonblocking()
@@ -272,7 +274,9 @@ def main():
                             processes[process_id].log[time] = 'Recibí mensaje {}'.format(received_message)
                             if ',' in received_message:
                                 split = received_message.split(',')
-                                process_id_send_extracted = int(split[0].strip())
+                                process_id_send_extracted = split[0].strip()
+                                if batch:
+                                    process_id_send_extracted = int(split[0].strip())
                                 if (config.confirmation_of_arrival):
                                     processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
                                     processes[process_id_send_extracted].receive_message_nonblocking()

@@ -1,4 +1,4 @@
-3,2,b,b,indirect
+3,2,b,b,indirect,0
 create,1,1
 send,1,1,hola
 send,1,1,hola

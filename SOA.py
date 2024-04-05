@@ -4,12 +4,13 @@ import os.path
 processes = {}
 
 class SystemConfiguration:
-    def __init__(self, num_processes, message_queue_size, send_type, receive_type, addressing_type, **kwargs):
+    def __init__(self, num_processes, message_queue_size, send_type, receive_type, addressing_type, confirmation_of_arrival, **kwargs):
         self.num_processes = num_processes
         self.message_queue_size = message_queue_size
         self.send_type = send_type
         self.receive_type = receive_type
         self.addressing_type = addressing_type
+        self.confirmation_of_arrival = confirmation_of_arrival
 
 class Message:
     def __init__(self, content, priority=0):
@@ -108,8 +109,9 @@ def configure_system():
     send_type = str(input("El send es blocking o nonblocking: "))
     receive_type = str(input("El receive es blocking o nonblocking: "))
     addressing_type = str(input("El direccionamiento es directo o indirecto: "))
+    confirmation_of_arrival = bool(input("Desea que se requieran pruebas de llegada de mensajes? (digite 0 para NO y 1 para SI): ")) 
 
-    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type, addressing_type)
+    return SystemConfiguration(num_processes, message_queue_size,send_type, receive_type, addressing_type, confirmation_of_arrival)
 
 def main():
     while True:
@@ -126,7 +128,7 @@ def main():
         
         if batch:
             line = f.readline().strip().split(',')
-            config = SystemConfiguration(int(line[0]), int(line[1]), line[2], line[3], line[4])
+            config = SystemConfiguration(int(line[0]), int(line[1]), line[2], line[3], line[4], line[5])
         else:
             config = configure_system()
 
@@ -241,13 +243,14 @@ def main():
                             if ',' in received_message:
                                 split = received_message.split(',')
                                 process_id_send_extracted = split[0].strip()
-                                processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
-                                processes[process_id_send_extracted].receive_message_nonblocking()
+                                if (config.confirmation_of_arrival):
+                                    processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                                    processes[process_id_send_extracted].receive_message_nonblocking()
+                                    processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
+                                    processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
+                                    processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
                                 processes[process_id].receive_block = False
-                                processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
-                                processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
-                                processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
                         else:
                             processes[process_id].receive_block = True
                             print(f"Process {process_id} no recibió ningún mensaje.")
@@ -261,15 +264,14 @@ def main():
                             if ',' in received_message:
                                 split = received_message.split(',')
                                 process_id_send_extracted = split[0].strip()
-                                processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
-                                processes[process_id_send_extracted].receive_message_nonblocking()
+                                if (config.confirmation_of_arrival):
+                                    processes[process_id].send_message(f"Proceso {process_id} recibió mi mensaje", processes[process_id_send_extracted], blocking='nonblocking', priority=0)
+                                    processes[process_id_send_extracted].receive_message_nonblocking()
+                                    processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
+                                    processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
+                                    processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
-                                processes[process_id_send_extracted].log[time] = f'Proceso {process_id} Prueba de llegada'
-                                processes[process_id_send_extracted].log_queue[time] = f'Proceso {process_id} Prueba de llegada'
-                                processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a  {process_id_send_extracted}'
-                        
-
-
+                                                        
             elif command == "display":
                 display(processes)
 

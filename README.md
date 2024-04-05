@@ -71,10 +71,21 @@ Al ejecutar create el simulador solicita:
 - Ingrese el nombre del proceso: **Insertar un nombre (str)**
 - Ingrese el ID del proceso: **Insertar un número**
 
-#### Send: 
+**Nota:** Para que se de el funcionamiento deben existir al menos 2 procesos.
 
+#### Send: 
+Al ejecutar send el simulador solicita:
+- Ingrese el ID del proceso que envia el mensaje: **Insertar un número de ID**
+- Ingrese el ID del proceso al que desea enviar el mensaje: **Insertar un número de ID**
+- Ingrese el mensaje: **Insertar el mensaje(str)**
+- Ingrese la prioridad donde 1 es alta y 0 baja: **Insertar un número 1-alta y 0-baja**
+
+**Importante:** Para el caso donde el send es blocking debera esperar a ser recibido para poder ser utilizado nuevamente.
 
 #### Receive:
+Al ejecutar receive el simulador solicita:
+-Ingrese el ID del proceso que recibe el mensaje: **Insertar un número de ID**
+
 
 
 

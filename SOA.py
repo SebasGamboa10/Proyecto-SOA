@@ -180,7 +180,7 @@ def main():
                     process_id_send = int(line[1])
                     process_id = int(line[2])
                 else:    
-                    process_id_send = input("Ingrese el ID del proceso envia el mensaje: ")
+                    process_id_send = input("Ingrese el ID del proceso que envia el mensaje: ")
                     process_id = input("Ingrese el ID del proceso al que desea enviar el mensaje: ")
                 if process_id_send not in processes:
                     print(f"Proceso {process_id_send} no existe")

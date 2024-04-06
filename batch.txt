@@ -1,3 +1,17 @@
+4,2,blocking,blocking,indirect,1,static
+create,1,1
+create,2,2
+create,3,3
+send,1,2,hola,1,explicito
+display
+receive,2,3
+receive,2,1
+send,3,2,hola,1,explicito
+receive,2,3
+receive,2,1
+display
+exit
+
 3,2,blocking,blocking,direct,1,dynamic
 create,1,1
 create,2,2

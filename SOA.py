@@ -250,10 +250,10 @@ def main():
                 else:
                     if dir_type == 'explicito':
                         if batch:
-                            sender = int(line[2])
+                            sender = line[2]
                         else:
                             sender = input("Ingrese el ID del que desea recibir el mensaje: ")
-                        if (processes[process_id].receive_block_pid == None or processes[process_id].receive_block_pid == 'sender'):
+                        if (processes[process_id].receive_block_pid == None or processes[process_id].receive_block_pid == sender):
                             # decode queue (por cada mensaje hacer split, tomar el [0] y si es sender, lo movemos al indice 0.)
                             message_found = False
                             for message in processes[process_id].message_queue:

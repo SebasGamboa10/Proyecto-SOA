@@ -84,9 +84,12 @@ Al ejecutar send el simulador solicita:
 
 #### Receive:
 Al ejecutar receive el simulador solicita:
--Ingrese el ID del proceso que recibe el mensaje: **Insertar un número de ID**
 
+- Ingrese el ID del proceso que recibe el mensaje: **Insertar un número de ID**
+- Direccionamiento implicito o explicito: **Insertar un número de ID**
 
+En caso de ser explicito:
+- Ingrese el ID del que desea recibir el mensaje: **Insertar un número de ID**
 
 
 

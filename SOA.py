@@ -268,13 +268,13 @@ def main():
                                 if config.receive_type == 'blocking':
                                     processes[process_id].receive_block_pid = sender
                                     processes[process_id].receive_block = True
-                                    print(f'No se recibió ningún mensaje de {sender}') #TODO: log
+                                    #print(f'No se recibió ningún mensaje de {sender}') 
+                                    processes[process_id].log[time] = f'No se recibió mensaje de {sender} --> Proceso Bloqueado'
                                     continue
                                 else:
                                     print(f'No se recibió ningún mensaje de {sender}')
+                                    processes[process_id].log[time] = f'No se recibió mensaje de {sender}'
                                     continue
-                    #elif dir_type != 'explicito':
-                    #FALTA VALIDAR DE QUIEN QUIERO RECIBIRLO
                     if config.receive_type == 'blocking' and processes[process_id].receive_block_pid == None:
                         received_message = processes[process_id].receive_message_blocking()
                         if received_message:
@@ -316,7 +316,7 @@ def main():
                                     processes[process_id].log[time] = processes[process_id].log[time] + ". " + f'Envié Prueba de llegada a {process_id_send_extracted}'
                                 processes[process_id_send_extracted].send_block = False
                     else:
-                        print('No puede recibir mensajes porque está bloqueado') ## LOG, bloqueado por sender
+                        processes[process_id].log[time] = f'No se recibió mensaje por bloqueo'
                     if (config.indirect_addr_type == 'dynanmic'):
                         processes[process_id].log[time] = f'Conexión con Mailbox establecida. ' + processes[process_id].log[time] + ". " + f'Cierre de conexión con Mailbox'
                                                         

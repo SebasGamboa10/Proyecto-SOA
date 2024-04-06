@@ -33,8 +33,8 @@ En la primera linea se asigna la configuración del sistema deseada en el orden 
 
 Luego de haber configurado el sistema, cada una de las siguientes lineas se encargará de contener un comando para la simulación. los comandos se usan como se muestra a continuación:
 - **create**: Para la creación de procesos debe indicarse el nombre y el ID de cada proceso.  `create,p1,1`.
-- **send**: Para el envío de un mensaje deben indicarse los ID de cada proceso (emisor y receptor), el mensaje a enviar y la prioridad del mismo (0 o 1).  `send,1,2,hola,0`.
-- **receive**: Debe indicarse el ID del proceso que desea recibir un mensaje de su cola de mensajes. `receive,2`.
+- **send**: Para el envío de un mensaje deben indicarse los ID de cada proceso (emisor y receptor), el mensaje a enviar y la prioridad del mismo (0 o 1). Finalmente puede especificar si el mensaje será explicito o implícito, en caso de utilizar direccionamiento directo  `send,1,2,hola,0,explicit`.
+- **receive**: Debe indicarse el ID del proceso que desea recibir un mensaje de su cola de mensajes. `receive,2`. En el caso de utilizar un explicit receive, debe indicar el origen del mensaje `receive,2,1`.
 - **display**: Para mostrar el estado actual del sistema y sus procesos solo se requiere la linea `display`.
 - **reset**: Es posible realizar múltiples simulaciones con un solo archivo batch si coloca la opción `reset` y posterior a esa una nueva linea de configuración como la inicial.
 - **exit**: finalmente, siempre se debe finalizar el archivo con el commando `exit`.

@@ -1,4 +1,6 @@
 from functools import cmp_to_key
+import copy
+
 class Process:
     def __init__(self, pid, deadline, time_period, deadline_start=-1, arrival_time=-1):
         self.pid = pid
@@ -154,4 +156,78 @@ procs_2 = [
 
 edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)
 # rate_monotonic_scheduling(procs)
+
+def EDF_Periodic(tasks):
+    
+    start = copy.deepcopy(tasks)
+    max_period = max(task[1] for task in tasks)
+
+
+    for i in range(max_period):
+        tasks = sorted(tasks, key=lambda s: abs((i + 1)  - s[2]))
+
+        print(f'Iteracion {i+1}')
+        for task in tasks:
+
+            if task[2] < i+1:
+                print(f'La tarea {task} no cumple con el deadline')
+
+                for x, t in enumerate(tasks):
+                    if task == t:
+                        if (i + 1) % t[1] == 0:
+                            print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                            task[2] += task[1]
+                            for p, row in enumerate(start):
+                                if t[1] == row[1]:
+                                    tasks[x][3] = start[p][3]
+                continue
+            
+            if task[3] > 0:
+                print(f'Tarea {task}')
+                task[3] -= 1
+                
+                if task[3] == 0:
+                    task[2] += task[1]
+                    
+                for x, t in enumerate(tasks):
+                    if (i + 1) % t[1] == 0 and t[3] == 0:
+                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                        for p, row in enumerate(start):
+                            if t[1] == row[1]:
+                                tasks[x][3] = start[p][3]
+                print(f'Las tareas luego de iterar> {tasks}')
+                break
+
+            if max(task[3] for task in tasks) == 0:
+                for x, t in enumerate(tasks):
+                    if (i + 1) % t[1] == 0:
+                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                        for p, row in enumerate(start):
+                            if t[1] == row[1]:
+                                tasks[x][3] = start[p][3]
+                tasks.sort(key=lambda x: x[2])
+                break
+
+            if (i+1) % task[1] == 0:                        
+                for x, t in enumerate(tasks):
+                    if task == t:
+                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                        for p, row in enumerate(start):
+                            if t[1] == row[1]:
+                                tasks[x][3] = start[p][3]
+
+    print("Todas las tareas han sido completadas.")
+
+
+
+tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecución)
+         ["Tarea 2", 5, 4, 2],
+         ["Tarea 3", 10, 8, 2]]
+
+EDF_Periodic(tasks)
+
+
+
+        
+#rate_monotonic_scheduling(procs)
 

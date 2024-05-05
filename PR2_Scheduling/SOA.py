@@ -155,9 +155,6 @@ procs_2 = [
     Process("E", 80, 20, 70, 60)
 ]
 
-edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)
-# rate_monotonic_scheduling(procs)
-
 def EDF_Periodic(tasks):
     
     start = copy.deepcopy(tasks)
@@ -225,7 +222,8 @@ tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecuc
          ["Tarea 2", 5, 4, 2],
          ["Tarea 3", 10, 8, 2]]
 
-EDF_Periodic(tasks)        
+#EDF_Periodic(tasks)
+#edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)        
 #rate_monotonic_scheduling(procs)
 
 def configure_system():
@@ -240,7 +238,7 @@ def configure_system():
     # Proc input
     use_proc_file = int(input("Desea leer procesos de un archivo? (1/0): "))
     if use_proc_file:
-        procs = read_input_file(str(input("Ingrese la ruta del archivo")), alg)
+        procs = read_input_file(str(input("Ingrese el nomrbe del archivo: ")), alg)
     else:
         procs = []
         proc_count = 0
@@ -273,7 +271,7 @@ def configure_system():
     use_out_file = int(input("Desea escribir la salida en un archivo? (1/0): "))
     if use_out_file:
         # later we will use if output_file: ta ta ta.
-        output_file = str(input("Ingrese la ruta del archivo"))
+        output_file = str(input("Ingrese el nombre del archivo: "))
     return (procs, alg, t, output_file)
 
 def read_input_file(path, alg):
@@ -282,8 +280,10 @@ def read_input_file(path, alg):
         f = open(path, "r")
         while True:
             line = f.readline().strip().split(',')
-            if not line:
+            #print(line)
+            if  len(line) < 2:
                 break
+            line = [int(i) for i in line] # str to int
             if alg == ("RMS"):
                 procs.append(Process(line[0],line[1],line[2]))
             elif alg == ("EDF-p"):
@@ -296,6 +296,8 @@ def read_input_file(path, alg):
 
 def main():
     procs, alg, t, output_file = configure_system()
+    if alg == 'RMS':
+        rate_monotonic_scheduling(procs, t)
 
 if __name__ == "__main__":
     main()

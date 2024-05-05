@@ -1,6 +1,7 @@
 from functools import cmp_to_key
 import copy
-import os
+import sys
+import os.path
 
 class Process:
     def __init__(self, pid, deadline, time_period, deadline_start=-1, arrival_time=-1):
@@ -226,52 +227,77 @@ tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecuc
 #edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)        
 #rate_monotonic_scheduling(procs)
 
-def configure_system():
+def configure_system(argv):
     print("Configuración del sistema:")
     # Alg selection
-    while True:
-        alg = str(input("Ingrese el algoritmo que desea utilizar (RMS, EDF-p, EDF-a): "))
-        if alg == ('RMS') or alg == ('EDF-p') or alg == ('EDF-a'):
-            break
-        else:
+    arg_index = (argv.index('-a') if '-a' in argv else False)
+    if arg_index:
+        alg = argv[arg_index + 1]
+        arg_index = None
+        if not((alg == ('RMS')) or (alg == ('EDF-p')) or (alg == ('EDF-a'))):
             print("El algoritmo no es válido")
-    # Proc input
-    use_proc_file = int(input("Desea leer procesos de un archivo? (1/0): "))
-    if use_proc_file:
-        procs = read_input_file(str(input("Ingrese el nomrbe del archivo: ")), alg)
+            sys.exit()
     else:
-        procs = []
-        proc_count = 0
         while True:
-            flag = int(input("Desea agregar un proceso? (1/0): "))
-            proc_count += 1
-            if flag:
-                if alg == ("RMS"):
-                    d = int(input("Ingrese el deadline del proceso: "))
-                    t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                    procs.append(Process(proc_count, d, t))
-                elif alg == ("EDF-p"):
-                    # TODO: agregar params relevantes papu1
-                    d = int(input("Ingrese el deadline del proceso: "))
-                    t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                    procs.append(Process(proc_count, d, t))
-                else: # EDF-a
-                    # TODO: agregar params relevantes papu2
-                    d = int(input("Ingrese el deadline del proceso: "))
-                    t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                    procs.append(Process(proc_count, d, t))
-                print ("Proceso creado.")
-            else:
+            alg = str(input("Ingrese el algoritmo que desea utilizar (RMS, EDF-p, EDF-a): "))
+            if alg == ('RMS') or alg == ('EDF-p') or alg == ('EDF-a'):
                 break
+            else:
+                print("El algoritmo no es válido")
+    # Proc input
+    arg_index = (argv.index('-i') if '-i' in argv else False)
+    if arg_index:
+        path = argv[arg_index + 1]
+        arg_index = None
+        procs = read_input_file(path, alg)
+    else:
+        use_proc_file = int(input("Desea leer procesos de un archivo? (1/0): "))
+        if use_proc_file:
+            procs = read_input_file(str(input("Ingrese el nombre del archivo: ")), alg)
+        else:
+            procs = []
+            proc_count = 0
+            while True:
+                flag = int(input("Desea agregar un proceso? (1/0): "))
+                proc_count += 1
+                if flag:
+                    if alg == ("RMS"):
+                        d = int(input("Ingrese el deadline del proceso: "))
+                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
+                        procs.append(Process(proc_count, d, t))
+                    elif alg == ("EDF-p"):
+                        # TODO: agregar params relevantes papu1
+                        d = int(input("Ingrese el deadline del proceso: "))
+                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
+                        procs.append(Process(proc_count, d, t))
+                    else: # EDF-a
+                        # TODO: agregar params relevantes papu2
+                        d = int(input("Ingrese el deadline del proceso: "))
+                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
+                        procs.append(Process(proc_count, d, t))
+                    print ("Proceso creado.")
+                else:
+                    break
     # Sim time
     # TODO: otra palabra en vez de iters? steps, unidades de tiempo?...
-    t = int(input("Ingrese el número de iteraciones que desea simular: "))
-    # Proc creation
+    arg_index = (argv.index('-t') if '-t' in argv else False)
+    if arg_index:
+        t = int(argv[arg_index + 1])
+        arg_index = None
+    else:
+        t = int(input("Ingrese el número de iteraciones que desea simular: "))
+    
+    # Output
     output_file = 0
-    use_out_file = int(input("Desea escribir la salida en un archivo? (1/0): "))
-    if use_out_file:
-        # later we will use if output_file: ta ta ta.
-        output_file = str(input("Ingrese el nombre del archivo: "))
+    arg_index = (argv.index('-o') if '-o' in argv else False)
+    if arg_index:
+        output_file = argv[arg_index + 1]
+        arg_index = None
+    else:
+        use_out_file = int(input("Desea escribir la salida en un archivo? (1/0): "))
+        if use_out_file:
+            # later we will use if output_file: ta ta ta.
+            output_file = str(input("Ingrese el nombre del archivo: "))
     return (procs, alg, t, output_file)
 
 def read_input_file(path, alg):
@@ -292,12 +318,27 @@ def read_input_file(path, alg):
             else: #EDF-a
                 # TODO: agregar params relevantes papu2
                 procs.append(Process(line[0],line[1],line[2]))
+    else:
+        print('No se encontró el archivo')
     return procs
 
 def main():
-    procs, alg, t, output_file = configure_system()
+    
+    procs, alg, t, output_file = configure_system(sys.argv)
+
     if alg == 'RMS':
         rate_monotonic_scheduling(procs, t)
+    #TODO: papus 
+    #elif alg == ("EDF-p"):
+        # TODO: agregar params relevantes papu1
+        # procs.append(Process(line[0],line[1],line[2]))
+    #else: #EDF-a
+        # TODO: agregar params relevantes papu2
+        #procs.append(Process(line[0],line[1],line[2]))
+    
+    # TODO: output file.
+    if output_file:
+        a = 1 
 
 if __name__ == "__main__":
     main()

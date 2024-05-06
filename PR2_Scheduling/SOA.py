@@ -349,16 +349,18 @@ def main():
         f = open(output_file, "w")
         f.write("------- Stats -------\n")
         for proc in procs:
-                f.write(f'''Proc {proc.pid}:Deadline misses: {proc.stats[0]}
-Scheduled periods: {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
+                f.write(f'''Proc {proc.pid}:
+Deadline misses:       {proc.stats[0]}
+Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
 Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
-timeline: TODO''')
+timeline: TODO\n---------------------\n''')
     # Print stats
     else:
         print("------- Stats -------")
         for proc in procs:
-            print(f'''Proc {proc.pid}:Deadline misses: {proc.stats[0]}
-Scheduled periods: {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
+            print(f'''Proc {proc.pid}:
+Deadline misses:       {proc.stats[0]}
+Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
 Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
 timeline: TODO''')
 

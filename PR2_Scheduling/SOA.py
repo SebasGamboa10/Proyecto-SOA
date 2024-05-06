@@ -11,6 +11,8 @@ class Process:
         self.remaining_time = time_period
         self.deadline_start = deadline_start
         self.arrival_time = arrival_time
+        # [[deadline miss, periodos en ejecución, periodos sin ejecución, linea del tiempo?]]
+        self.stats = [0, 0, 0, {}] # TODO: Linea del tiempo?
 
 def print_procs(procs):
     for proc in procs:
@@ -28,7 +30,8 @@ def rate_monotonic_scheduling(procs, steps = 15):
         for proc in procs:
             if i > 0 and i % proc.deadline == 0:
                 if proc.remaining_time > 0: 
-                    # TODO: log deadline miss.
+                    # stats update
+                    proc.stats[0] += 1
                     print(f"Deadline Miss. Pid: {proc.pid}, rem: {proc.remaining_time}")
                 # reset procs
                 proc.remaining_time = proc.time_period
@@ -41,6 +44,11 @@ def rate_monotonic_scheduling(procs, steps = 15):
             # (shortest time_period first)    
             current_proc = min(unfinished_procs, key=lambda x: x.time_period)
             current_proc.remaining_time -= 1
+            # stats update
+            for proc in unfinished_procs:
+                if not proc.pid == current_proc.pid:
+                    current_proc.stats[2] += 1
+            current_proc.stats[1] += 1
             print(f"Giving CPU to pid: {current_proc.pid}, rem: {current_proc.remaining_time}")
         
 def build_summary_maps(procs):
@@ -327,7 +335,7 @@ def main():
     procs, alg, t, output_file = configure_system(sys.argv)
 
     if alg == 'RMS':
-        rate_monotonic_scheduling(procs, t)
+        stats = rate_monotonic_scheduling(procs, t)
     #TODO: papus 
     #elif alg == ("EDF-p"):
         # TODO: agregar params relevantes papu1
@@ -338,7 +346,22 @@ def main():
     
     # TODO: output file.
     if output_file:
-        a = 1 
+        f = open(output_file, "w")
+        f.write("------- Stats -------\n")
+        for proc in procs:
+                f.write(f'''Proc {proc.pid}:Deadline misses: {proc.stats[0]}
+Scheduled periods: {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
+Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
+timeline: TODO''')
+    # Print stats
+    else:
+        print("------- Stats -------")
+        for proc in procs:
+            print(f'''Proc {proc.pid}:Deadline misses: {proc.stats[0]}
+Scheduled periods: {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
+Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
+timeline: TODO''')
+
 
 if __name__ == "__main__":
     main()

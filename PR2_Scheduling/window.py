@@ -63,6 +63,9 @@ class App:
 
         }
 
+        self.max_simulation_time_entry = tk.StringVar(root)
+
+
         i = 0
         for key in self.CREATE_FORM:
             label=tk.Label(root)
@@ -94,7 +97,6 @@ class App:
         create_task_button.place(x=380,y=410,width=275,height=40)
         create_task_button["command"] = self.create_task_button_command
 
-
         select_file_button=tk.Button(root)
         select_file_button["bg"] = "#f0f0f0"
         ft = tkFont.Font(family='Times',size=12)
@@ -105,6 +107,51 @@ class App:
         select_file_button["text"] = "Seleccionar archivo"
         select_file_button.place(x=380,y=470,width=275,height=40)
         select_file_button["command"] = self.select_file_button_command
+
+        vlist = ["RMS", "EDF Períodico", "EDF Aperíodico", "EDF Aperíodico (Inactividad no forzada)"]
+
+        label=tk.Label(root)
+        ft = tkFont.Font(family='Times',size=12)
+        label["font"] = ft
+        label["justify"] = "center"
+        label["fg"] = "#333333"
+        label["text"] = "Algoritmo a simular"
+        label.place(x=380,y=530)
+
+        Combo = ttk.Combobox(root, values = vlist)
+        Combo.set("RMS")
+        Combo.place(x=380,y=560,width=275,height=40)
+
+        label=tk.Label(root)
+        ft = tkFont.Font(family='Times',size=12)
+        label["font"] = ft
+        label["justify"] = "center"
+        label["fg"] = "#333333"
+        label["text"] = "Tiempo a simular"
+        label.place(x=380,y=610)
+
+        entry=tk.Entry(root)
+        entry["borderwidth"] = "1px"
+        ft = tkFont.Font(family='Times',size=12)
+        entry["font"] = ft
+        entry["fg"] = "#333333"
+        entry["justify"] = "center"
+        entry["textvariable"] = self.max_simulation_time_entry
+        entry.place(x=380,y=640,width=276,height=40)
+
+        run_simulation_button=tk.Button(root)
+        run_simulation_button["bg"] = "#f0f0f0"
+        ft = tkFont.Font(family='Times',size=12)
+        run_simulation_button["font"] = ft
+        run_simulation_button["fg"] = "#fff"
+        run_simulation_button["bg"] = "#cc0000"
+        run_simulation_button["justify"] = "center"
+        run_simulation_button["text"] = "Simular"
+        run_simulation_button.place(x=380,y=730,width=275,height=40)
+        run_simulation_button["command"] = self.run_simulation_button_command
+
+    def run_simulation_button_command(self):
+        pass
 
     def select_file_button_command(self):
         filename = askopenfilename()

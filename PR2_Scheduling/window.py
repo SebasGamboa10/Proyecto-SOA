@@ -180,9 +180,9 @@ class App:
         time_period = self.CREATE_FORM["time_period"]["value"].get()
         arrival = self.CREATE_FORM["arrival"]["value"].get()
 
-        if not all([name, deadline_start, deadline_end, time_period, arrival]):
-            messagebox.showerror("Error", "Por favor, complete todos los campos.")
-            return
+        # if not all([name, deadline_start, deadline_end, time_period, arrival]):
+        #     messagebox.showerror("Error", "Por favor, complete todos los campos.")
+        #     return
 
         PROCESSES.append(Process(name, deadline_end, time_period, deadline_start, arrival))
         process_info = (name, deadline_start, deadline_end, time_period, arrival, "Creado")

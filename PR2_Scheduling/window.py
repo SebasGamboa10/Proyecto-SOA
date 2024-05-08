@@ -39,6 +39,17 @@ class App:
         scrollbar.place(x=775, y=20, height=320)
         self.tasks_treeview.config(yscrollcommand=scrollbar.set)
 
+        vlist = ["RMS", "EDF Períodico", "EDF Aperíodico", "EDF Aperíodico (Inactividad no forzada)"]
+        
+
+        self.current_algorithm = tk.StringVar(value="RMS")
+        combo_algorithm = ttk.Combobox(root, values = vlist)
+        combo_algorithm.set("RMS")
+        combo_algorithm["textvariable"] = self.current_algorithm
+        combo_algorithm.place(x=380,y=560,width=275,height=40)
+        combo_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
+
+
         self.CREATE_FORM = {
             "name": {
                 "text": "Nombre de la tarea",
@@ -46,7 +57,8 @@ class App:
             },
             "deadline_start": {
                 "text": "Deadline de inicio",
-                "value": tk.StringVar(root)
+                "value": tk.StringVar(root),
+                "active_on": [vlist[2], vlist[3]]
             },
             "deadline_end": {
                 "text": "Deadline de fin",
@@ -54,11 +66,13 @@ class App:
             },
             "time_period": {
                 "text": "Periodo",
-                "value": tk.StringVar(root)
+                "value": tk.StringVar(root),
+                "active_on": [vlist[0], vlist[1]]
             },
             "arrival": {
                 "text": "Llegada",
-                "value": tk.StringVar(root)
+                "value": tk.StringVar(root),
+                "active_on": [vlist[2], vlist[3]]
             }
 
         }
@@ -76,14 +90,15 @@ class App:
             label["text"] = self.CREATE_FORM[key]["text"]
             label.place(x=20,y=380+(i*80))
 
-            entry=tk.Entry(root)
-            entry["borderwidth"] = "1px"
+            disabled_status = "normal" if ("active_on" not in self.CREATE_FORM[key] or self.current_algorithm.get() in self.CREATE_FORM[key]["active_on"]) else "disabled"
+            self.CREATE_FORM[key]["entry"]=tk.Entry(root, state=disabled_status)
+            self.CREATE_FORM[key]["entry"]["borderwidth"] = "1px"
             ft = tkFont.Font(family='Times',size=12)
-            entry["font"] = ft
-            entry["fg"] = "#333333"
-            entry["justify"] = "center"
-            entry["textvariable"] = self.CREATE_FORM[key]["value"]
-            entry.place(x=20,y=410+(i*80),width=276,height=40)
+            self.CREATE_FORM[key]["entry"]["font"] = ft
+            self.CREATE_FORM[key]["entry"]["fg"] = "#333333"
+            self.CREATE_FORM[key]["entry"]["justify"] = "center"
+            self.CREATE_FORM[key]["entry"]["textvariable"] = self.CREATE_FORM[key]["value"]
+            self.CREATE_FORM[key]["entry"].place(x=20,y=410+(i*80),width=276,height=40)
             i += 1
 
         create_task_button=tk.Button(root)
@@ -108,8 +123,6 @@ class App:
         select_file_button.place(x=380,y=470,width=275,height=40)
         select_file_button["command"] = self.select_file_button_command
 
-        vlist = ["RMS", "EDF Períodico", "EDF Aperíodico", "EDF Aperíodico (Inactividad no forzada)"]
-
         label=tk.Label(root)
         ft = tkFont.Font(family='Times',size=12)
         label["font"] = ft
@@ -117,10 +130,6 @@ class App:
         label["fg"] = "#333333"
         label["text"] = "Algoritmo a simular"
         label.place(x=380,y=530)
-
-        Combo = ttk.Combobox(root, values = vlist)
-        Combo.set("RMS")
-        Combo.place(x=380,y=560,width=275,height=40)
 
         label=tk.Label(root)
         ft = tkFont.Font(family='Times',size=12)
@@ -149,6 +158,13 @@ class App:
         run_simulation_button["text"] = "Simular"
         run_simulation_button.place(x=380,y=730,width=275,height=40)
         run_simulation_button["command"] = self.run_simulation_button_command
+
+    def on_combobox_change(self, event):
+        for key in self.CREATE_FORM:
+            if ("active_on" not in self.CREATE_FORM[key] or self.current_algorithm.get() in self.CREATE_FORM[key]["active_on"]):
+                self.CREATE_FORM[key]["entry"].config(state="normal")
+            else:
+                self.CREATE_FORM[key]["entry"].config(state="disabled")
 
     def run_simulation_button_command(self):
         pass

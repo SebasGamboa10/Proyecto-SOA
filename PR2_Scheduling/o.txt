@@ -1,19 +1,117 @@
 ------- Stats -------
 Proc 1:
-Deadline misses:       1
-Scheduled periods:     1 (5.0 %)
-Not-scheduled periods: 19 (95.0 %)
-timeline: TODO
+Deadline misses:       0
+Scheduled periods:     4 (26.67 %)
+Not-scheduled periods: 11 (73.33 %)
+-------- Timeline --------
+Iter 0:
+        Running on CPU
+Iter 1:
+        Waiting to reinitialize
+Iter 2:
+        Waiting to reinitialize
+Iter 3:
+        Waiting to reinitialize
+Iter 4:
+        Initializing process
+        Running on CPU
+Iter 5:
+        Waiting to reinitialize
+Iter 6:
+        Waiting to reinitialize
+Iter 7:
+        Waiting to reinitialize
+Iter 8:
+        Initializing process
+        Running on CPU
+Iter 9:
+        Waiting to reinitialize
+Iter 10:
+        Waiting to reinitialize
+Iter 11:
+        Waiting to reinitialize
+Iter 12:
+        Initializing process
+        Running on CPU
+Iter 13:
+        Waiting to reinitialize
+Iter 14:
+        Waiting to reinitialize
 ---------------------
 Proc 2:
 Deadline misses:       0
-Scheduled periods:     8 (40.0 %)
-Not-scheduled periods: 12 (60.0 %)
-timeline: TODO
+Scheduled periods:     6 (40.0 %)
+Not-scheduled periods: 9 (60.0 %)
+-------- Timeline --------
+Iter 0:
+        Waiting for CPU
+Iter 1:
+        Running on CPU
+Iter 2:
+        Running on CPU
+Iter 3:
+        Waiting to reinitialize
+Iter 4:
+        Waiting to reinitialize
+Iter 5:
+        Initializing process
+        Running on CPU
+Iter 6:
+        Running on CPU
+Iter 7:
+        Waiting to reinitialize
+Iter 8:
+        Waiting to reinitialize
+Iter 9:
+        Waiting to reinitialize
+Iter 10:
+        Initializing process
+        Running on CPU
+Iter 11:
+        Running on CPU
+Iter 12:
+        Waiting to reinitialize
+Iter 13:
+        Waiting to reinitialize
+Iter 14:
+        Waiting to reinitialize
 ---------------------
 Proc 3:
-Deadline misses:       2
-Scheduled periods:     10 (50.0 %)
-Not-scheduled periods: 10 (50.0 %)
-timeline: TODO
+Deadline misses:       1
+Scheduled periods:     4 (26.67 %)
+Not-scheduled periods: 11 (73.33 %)
+-------- Timeline --------
+Iter 0:
+        Waiting for CPU
+Iter 1:
+        Waiting for CPU
+Iter 2:
+        Waiting for CPU
+Iter 3:
+        Running on CPU
+Iter 4:
+        Waiting for CPU
+Iter 5:
+        Waiting for CPU
+Iter 6:
+        Waiting for CPU
+Iter 7:
+        Deadline miss with 1 time remaining
+        Initializing process
+        Running on CPU
+Iter 8:
+        Waiting for CPU
+Iter 9:
+        Running on CPU
+Iter 10:
+        Waiting to reinitialize
+Iter 11:
+        Waiting to reinitialize
+Iter 12:
+        Waiting to reinitialize
+Iter 13:
+        Waiting to reinitialize
+Iter 14:
+        Initializing process
+        Running on CPU
 ---------------------

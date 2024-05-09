@@ -13,7 +13,7 @@ class Process:
         self.deadline_start = deadline_start
         self.arrival_time = arrival_time
         # [[deadline miss, periodos en ejecución, periodos sin ejecución, linea del tiempo?]]
-        self.stats = [0, 0, 0, {}] # TODO: Linea del tiempo?
+        self.stats = [0, 0, 0, []] # TODO: Linea del tiempo?
 
 def print_procs(procs):
     for proc in procs:
@@ -27,17 +27,25 @@ def rate_monotonic_scheduling(procs, steps = 15):
     # simulate
     for i in range(steps):
         print("------- Iter: ", i, "-------")
-        # get deadline misses
         for proc in procs:
+            # Stats update (assuming no proc is used in this iter)
+            proc.stats[2] += 1
+            proc.stats[3].append(f"Iter {i}:\n")
+            # Get deadline Misses
             if i > 0 and i % proc.deadline == 0:
                 if proc.remaining_time > 0: 
                     # stats update
                     proc.stats[0] += 1
-                    print(f"Deadline Miss. Pid: {proc.pid}, rem: {proc.remaining_time}")
+                    print(f"Deadline miss. Pid: {proc.pid}, rem: {proc.remaining_time}")
+                    proc.stats[3][i] += f"        Deadline miss with {proc.remaining_time} time remaining\n"
                 # reset procs
                 proc.remaining_time = proc.time_period
+                print(f"Initializing process. Pid: {proc.pid}, rem: {proc.remaining_time}")
+                proc.stats[3][i] += f"        Initializing process\n"
                 #print_procs([proc])
-
+            elif 1 > 0 and proc.remaining_time == 0:
+                proc.stats[3][i] += f"        Waiting to reinitialize\n"
+            
         # schedule proc
         unfinished_procs = [proc for proc in procs if proc.remaining_time > 0]
         print_procs(unfinished_procs)
@@ -45,13 +53,15 @@ def rate_monotonic_scheduling(procs, steps = 15):
             # (shortest time_period first)    
             current_proc = min(unfinished_procs, key=lambda x: x.time_period)
             current_proc.remaining_time -= 1
-            # stats update
-            for proc in unfinished_procs:
-                if not proc.pid == current_proc.pid:
-                    current_proc.stats[2] += 1
-            current_proc.stats[1] += 1
             print(f"Giving CPU to pid: {current_proc.pid}, rem: {current_proc.remaining_time}")
-        
+            current_proc.stats[3][i] += f"        Running on CPU\n"
+            # stats update
+            current_proc.stats[1] += 1
+            current_proc.stats[2] -= 1 # to account for the sum done in line 32
+            for proc in unfinished_procs:
+                if not (proc.pid == current_proc.pid):
+                    proc.stats[3][i] += f"        Waiting for CPU\n"
+            
 def build_summary_maps(procs):
     arrival_map = {}
     deadline_start_map = {}
@@ -77,7 +87,6 @@ def get_earliest_deadline(procs_map, ready_tasks, deadline="start"):
 def get_earliest_deadline_plan(procs):
     return sorted(procs, key=cmp_to_key(lambda x, y: x.deadline_start - y.deadline_start)), \
     sorted(procs, key=cmp_to_key(lambda x, y: x.deadline - y.deadline))
-
 
 def edf_define_running_task(running_task, ready_tasks, unforced_idle_times, execution_plan_start_d, step, procs_map, execution_plan_indx):
     if running_task is None and len(ready_tasks) > 0:
@@ -317,8 +326,6 @@ def EDF_Periodic(tasks, procs, max_period=None):
                                     tasks[x][3] = start[p][3]
         #print(tasks)
 
-
-
 '''
 #Ejemplo
 tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecución)
@@ -329,7 +336,6 @@ tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecuc
 #EDF_Periodic(tasks)
 #edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)        
 #rate_monotonic_scheduling(procs)
-
 
 def configure_system(argv):
     print("Configuración del sistema:")
@@ -383,7 +389,6 @@ def configure_system(argv):
                 else:
                     break
     # Sim time
-    # TODO: otra palabra en vez de iters? steps, unidades de tiempo?...
     arg_index = (argv.index('-t') if '-t' in argv else False)
     if arg_index:
         t = int(argv[arg_index + 1])
@@ -393,7 +398,7 @@ def configure_system(argv):
             t = int(input("Ingrese el número de iteraciones que desea simular: "))
         except ValueError:
             t = 20
-    
+
     # Output
     output_file = 0
     arg_index = (argv.index('-o') if '-o' in argv else False)
@@ -405,7 +410,15 @@ def configure_system(argv):
         if use_out_file:
             # later we will use if output_file: ta ta ta.
             output_file = str(input("Ingrese el nombre del archivo: "))
-    return (procs, alg, t, output_file)
+    timeline = 0
+
+    arg_index = (argv.index('-tl') if '-tl' in argv else False)
+    if arg_index:
+        timeline = argv[arg_index + 1]
+        arg_index = None
+    else:
+        timeline = int(input("Desea imprimir el timeline de cada proceso? (1/0): "))
+    return (procs, alg, t, output_file, timeline)
 
 def read_input_file(path, alg):
     procs = []
@@ -418,9 +431,8 @@ def read_input_file(path, alg):
                 break
             line = [int(i) for i in line] # str to int
             if alg == ("RMS"):
-                procs.append(Process(line[0],line[1],line[2]))
+                procs.append(Process(line[0],0,line[1],line[2]))
             elif alg == ("EDF-p"):
-                # TODO: agregar params relevantes papu1
                 procs.append(Process(line[0],line[1],line[2],line[3]))
             else: #EDF-a
                 # TODO: agregar params relevantes papu2
@@ -430,15 +442,11 @@ def read_input_file(path, alg):
     return procs
 
 def main():
-    
-    procs, alg, t, output_file = configure_system(sys.argv)
-
+    procs, alg, t, output_file, timeline = configure_system(sys.argv)
     if alg == 'RMS':
-
-        stats = rate_monotonic_scheduling(procs, t)
+        rate_monotonic_scheduling(procs, t)
 
     elif alg == ("EDF-p"):
-
         tasks = []
         for proc in procs:
             tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
@@ -448,7 +456,6 @@ def main():
         # TODO: agregar params relevantes papu2
         #procs.append(Process(line[0],line[1],line[2]))
     
-    # TODO: output file.
     if output_file:
         f = open(output_file, "w")
         f.write("------- Stats -------\n")
@@ -456,8 +463,13 @@ def main():
                 f.write(f'''Proc {proc.pid}:
 Deadline misses:       {proc.stats[0]}
 Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
-Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
-timeline: TODO\n---------------------\n''')
+Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)\n''')
+                if timeline:
+                    f.write(("-------- Timeline --------\n"))
+                    for iter in proc.stats[3]:
+                        f.write(f"{iter}")
+                f.write("---------------------\n")
+#{"Timeline: " + str(proc.stats[3])[:].strip() if timeline else ""}\n---------------------\n''')
     # Print stats
     else:
         print("------- Stats -------")
@@ -465,9 +477,14 @@ timeline: TODO\n---------------------\n''')
             print(f'''Proc {proc.pid}:
 Deadline misses:       {proc.stats[0]}
 Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
-Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)
-timeline: TODO''')
+Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)\n''')
+            if timeline:
+                print("-------- Timeline --------\n")
+                for iter in proc.stats[3]:
+                    print(f"{iter}")
+            print("---------------------\n")
 
+#{"Timeline: " + str(proc.stats[3])[:].split(',') if timeline else ""}\n---------------------\n''')
 
 if __name__ == "__main__":
     main()

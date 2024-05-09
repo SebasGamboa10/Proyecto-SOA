@@ -1,19 +1,19 @@
 ------- Stats -------
 Proc 1:
-Deadline misses:       0
-Scheduled periods:     4 (26.67 %)
-Not-scheduled periods: 4 (26.67 %)
+Deadline misses:       1
+Scheduled periods:     1 (5.0 %)
+Not-scheduled periods: 19 (95.0 %)
 timeline: TODO
 ---------------------
 Proc 2:
 Deadline misses:       0
-Scheduled periods:     6 (40.0 %)
-Not-scheduled periods: 4 (26.67 %)
+Scheduled periods:     8 (40.0 %)
+Not-scheduled periods: 12 (60.0 %)
 timeline: TODO
 ---------------------
 Proc 3:
-Deadline misses:       1
-Scheduled periods:     4 (26.67 %)
-Not-scheduled periods: 0 (0.0 %)
+Deadline misses:       2
+Scheduled periods:     10 (50.0 %)
+Not-scheduled periods: 10 (50.0 %)
 timeline: TODO
 ---------------------

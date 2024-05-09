@@ -182,7 +182,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
         max_period = max_period
 
     for i in range(max_period):
-        tasks = sorted(tasks, key=lambda s: (s[2], s[0]))
+        tasks = sorted(tasks, key=lambda s: (s[2], s[3]))
 
         #Flags utilizadas para llevar control de reinicio por periodos
         flags = [0] * len(tasks)
@@ -258,7 +258,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
                 for proc in procs:
                         if proc.pid == task[0]:
                             proc.stats[1] += 1
-                            proc.stats[3][i+1] = "x"
+                            #proc.stats[3][i+1] = "x"
                 for proc in procs:
                         if proc.pid != task[0]:
                             proc.stats[2] += 1
@@ -421,7 +421,7 @@ def read_input_file(path, alg):
                 procs.append(Process(line[0],line[1],line[2]))
             elif alg == ("EDF-p"):
                 # TODO: agregar params relevantes papu1
-                procs.append(Process(line[0],line[1],line[2]))
+                procs.append(Process(line[0],line[1],line[2],line[3]))
             else: #EDF-a
                 # TODO: agregar params relevantes papu2
                 procs.append(Process(line[0],line[1],line[2]))
@@ -442,8 +442,6 @@ def main():
         tasks = []
         for proc in procs:
             tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
-
-        print(tasks)
         EDF_Periodic(tasks, procs)
 
     #else: #EDF-a

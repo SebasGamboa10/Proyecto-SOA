@@ -4,8 +4,9 @@ import sys
 import os.path
 
 class Process:
-    def __init__(self, pid, deadline, time_period, deadline_start=-1, arrival_time=-1):
+    def __init__(self, pid, period, deadline, time_period, deadline_start=-1, arrival_time=-1):
         self.pid = pid
+        self.period = period
         self.time_period = time_period
         self.deadline = deadline
         self.remaining_time = time_period
@@ -18,7 +19,7 @@ def print_procs(procs):
     for proc in procs:
         print(f"(PID: {proc.pid}, deadline: {proc.deadline}, time period: {proc.time_period}), remaining time: {proc.remaining_time}")  
     
-procs = [Process(1,4,1),Process(2,5,2),Process(3,7,2)]
+#procs = [Process(1,4,1),Process(2,5,2),Process(3,7,2)]
 #print_procs(procs)
 
 # procs: list of processes, each a tuple (or dict) of (ID, time_period, deadline, time_remaining)
@@ -164,76 +165,171 @@ procs_2 = [
     Process("E", 80, 20, 70, 60)
 ]
 
-def EDF_Periodic(tasks):
+def EDF_Periodic(tasks, procs, max_period=None):
     
     start = copy.deepcopy(tasks)
-    max_period = max(task[1] for task in tasks)
 
+    #Esta seccion se utiliza para el caso en que no se asigna cpu se pueda aumentar los stats
+    procs_copia = copy.deepcopy(procs)
+    nueva_lista = []
+    for p in procs_copia:
+        nueva_lista.append(p.stats[1:])
+         
+
+    if max_period == None:
+        max_period = max(task[1] for task in tasks)
+    else:
+        max_period = max_period
 
     for i in range(max_period):
-        tasks = sorted(tasks, key=lambda s: abs((i + 1)  - s[2]))
+        tasks = sorted(tasks, key=lambda s: (s[2], s[0]))
 
-        print(f'Iteracion {i+1}')
+        #Flags utilizadas para llevar control de reinicio por periodos
+        flags = [0] * len(tasks)
+
+        #Inicia aumentador de stats en caso de ser necesario
+        procs_lista = []
+        for p in procs:
+            procs_lista.append(p.stats[1:])
+        if nueva_lista == procs_lista and (i+1) != 1:
+            for proc in procs:
+                proc.stats[2] += 1
+            procs_copia = copy.deepcopy(procs)
+            nueva_lista = []
+            for p in procs_copia:
+                nueva_lista.append(p.stats[1:])
+        else:
+            procs_copia = copy.deepcopy(procs)
+            nueva_lista = []
+            for p in procs_copia:
+                nueva_lista.append(p.stats[1:])
+        #Final de aumentador de stads
+        
+        print('')
+        print(f'------- Iter:  {i+1} -------')
+        #print(tasks)
         for task in tasks:
 
-            if task[2] < i+1:
-                print(f'La tarea {task} no cumple con el deadline')
+            if task[2]+1 <= i+1:
+                if task[2]+1 == (i+1) and task[3] > 0:
+                    #print(f'La tarea {task} no cumple con el deadline')
+                    print(f"Deadline Miss. Pid: {task[0]}, rem: {task[3]}")
+                    for proc in procs:
+                        if proc.pid == task[0]:
+                            proc.stats[0] += 1
 
-                for x, t in enumerate(tasks):
-                    if task == t:
-                        if (i + 1) % t[1] == 0:
-                            print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
-                            task[2] += task[1]
-                            for p, row in enumerate(start):
-                                if t[1] == row[1]:
-                                    tasks[x][3] = start[p][3]
+                    for x, t in enumerate(tasks):
+                        if task == t:
+                            if (i + 1) % t[1] == 0:
+                                if flags[t[0]-1] == 0:
+                                    #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                                    print(f'Initializing process by period: Pid: {t[0]}')
+                                    flags[t[0]-1] = 1
+                                    task[2] += task[1]
+                                    for p, row in enumerate(start):
+                                        if t[1] == row[1]:
+                                            tasks[x][3] = start[p][3]
+                    continue
+
+                    
+                if (i+1) % task[1] == 0:                        
+                    for x, t in enumerate(tasks):
+                        if task == t:
+                            if flags[t[0]-1] == 0:
+                                #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                                print(f'Initializing process by period: Pid: {t[0]}')
+                                flags[t[0]-1] = 1
+                                task[2] += task[1]
+                                for p, row in enumerate(start):
+                                    if t[1] == row[1]:
+                                        tasks[x][3] = start[p][3]
                 continue
             
             if task[3] > 0:
-                print(f'Tarea {task}')
+                #print(f'Tarea {task}')
+                print(f'(PID: {task[0]}, deadline: {task[2]}, time period: {task[1]}), remaining time: {task[3]}')
                 task[3] -= 1
                 
                 if task[3] == 0:
                     task[2] += task[1]
-                    
+                
+                print(f'Giving CPU to pid: {task[0]}, rem: {task[3]}')
+
+                for proc in procs:
+                        if proc.pid == task[0]:
+                            proc.stats[1] += 1
+                            proc.stats[3][i+1] = "x"
+                for proc in procs:
+                        if proc.pid != task[0]:
+                            proc.stats[2] += 1
+    
+                
                 for x, t in enumerate(tasks):
-                    if (i + 1) % t[1] == 0 and t[3] == 0:
-                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
-                        for p, row in enumerate(start):
-                            if t[1] == row[1]:
-                                tasks[x][3] = start[p][3]
-                print(f'Las tareas luego de iterar> {tasks}')
+                    if (i + 1) % t[1] == 0 and t[3]==0:
+                        if flags[t[0]-1] == 0:
+                            #tiene t[3]==0 porque sumo en el if anterior
+                            #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                            print(f'Initializing process by period: Pid: {t[0]}')
+                            flags[t[0]-1] = 1
+                            for p, row in enumerate(start):
+                                if t[1] == row[1]:
+                                    tasks[x][3] = start[p][3]
+                    
+                    elif (i + 1) % t[1] == 0 :
+                        if flags[t[0]-1] == 0:
+                            #esto se coloca porque si alguien mas se debia reiniciar al haber un break lo mataria antes de hacerlo
+                            #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                            print(f'Initializing process by period: Pid: {t[0]}')
+                            flags[t[0]-1] = 1
+                            t[2] += t[1]
+                            for p, row in enumerate(start):
+                                if t[1] == row[1]:
+                                    tasks[x][3] = start[p][3]
+                #print(f'Las tareas luego de iterar> {tasks}')'''
                 break
 
             if max(task[3] for task in tasks) == 0:
                 for x, t in enumerate(tasks):
                     if (i + 1) % t[1] == 0:
-                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
-                        for p, row in enumerate(start):
-                            if t[1] == row[1]:
-                                tasks[x][3] = start[p][3]
+                        if flags[t[0]-1] == 0:
+                            #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                            print(f'Initializing process by period: Pid: {t[0]}')
+                            flags[t[0]-1] = 1
+                            for p, row in enumerate(start):
+                                if t[1] == row[1]:
+                                    tasks[x][3] = start[p][3]
                 tasks.sort(key=lambda x: x[2])
+
+                for proc in procs:
+                    proc.stats[2] += 1
+
                 break
 
             if (i+1) % task[1] == 0:                        
                 for x, t in enumerate(tasks):
                     if task == t:
-                        print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
-                        for p, row in enumerate(start):
-                            if t[1] == row[1]:
-                                tasks[x][3] = start[p][3]
+                        if flags[t[0]-1] == 0:
+                            #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
+                            print(f'Initializing process by period: Pid: {t[0]}')
+                            flags[t[0]-1] = 1
+                            for p, row in enumerate(start):
+                                if t[1] == row[1]:
+                                    tasks[x][3] = start[p][3]
+        #print(tasks)
 
-    print("Todas las tareas han sido completadas.")
 
 
-
+'''
+#Ejemplo
 tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecución)
-         ["Tarea 2", 5, 4, 2],
-         ["Tarea 3", 10, 8, 2]]
+         ["Tarea 2", 7, 4, 3],
+         ["Tarea 3", 10, 8, 5]]
+'''
 
 #EDF_Periodic(tasks)
 #edf_aperiodic(procs_2, deadline="start", unforced_idle_times=True)        
 #rate_monotonic_scheduling(procs)
+
 
 def configure_system(argv):
     print("Configuración del sistema:")
@@ -272,12 +368,12 @@ def configure_system(argv):
                     if alg == ("RMS"):
                         d = int(input("Ingrese el deadline del proceso: "))
                         t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        procs.append(Process(proc_count, d, t))
+                        procs.append(Process(proc_count,0 ,d, t))
                     elif alg == ("EDF-p"):
-                        # TODO: agregar params relevantes papu1
+                        p = int(input("Ingrese el periodo del proceso: "))
                         d = int(input("Ingrese el deadline del proceso: "))
                         t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        procs.append(Process(proc_count, d, t))
+                        procs.append(Process(proc_count,p, d, t))
                     else: # EDF-a
                         # TODO: agregar params relevantes papu2
                         d = int(input("Ingrese el deadline del proceso: "))
@@ -293,7 +389,10 @@ def configure_system(argv):
         t = int(argv[arg_index + 1])
         arg_index = None
     else:
-        t = int(input("Ingrese el número de iteraciones que desea simular: "))
+        try:
+            t = int(input("Ingrese el número de iteraciones que desea simular: "))
+        except ValueError:
+            t = 20
     
     # Output
     output_file = 0
@@ -335,11 +434,18 @@ def main():
     procs, alg, t, output_file = configure_system(sys.argv)
 
     if alg == 'RMS':
+
         stats = rate_monotonic_scheduling(procs, t)
-    #TODO: papus 
-    #elif alg == ("EDF-p"):
-        # TODO: agregar params relevantes papu1
-        # procs.append(Process(line[0],line[1],line[2]))
+
+    elif alg == ("EDF-p"):
+
+        tasks = []
+        for proc in procs:
+            tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
+
+        print(tasks)
+        EDF_Periodic(tasks, procs)
+
     #else: #EDF-a
         # TODO: agregar params relevantes papu2
         #procs.append(Process(line[0],line[1],line[2]))

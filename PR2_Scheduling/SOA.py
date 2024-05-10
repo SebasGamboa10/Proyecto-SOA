@@ -506,7 +506,6 @@ def read_input_file(path, alg):
             elif alg == ("EDF-p"):
                 procs.append(Process(line[0],line[1],line[2],line[3]))
             else: #EDF-a
-                # TODO: agregar params relevantes papu2
                 procs.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
     else:
         print('No se encontró el archivo')

@@ -181,8 +181,21 @@ class App:
         #ttk.Button(win, text= "Open", command= open_prompt).pack()
         #os.system('SOA.py -t 20 -a EDF-p -i edf2.txt -o o.txt -tl 1')
         #TODO: crear archivo de input a partir de PROCESSES
-
-        subprocess.run(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "rms.txt", "-o", "o.txt", "-tl", "0"])
+        f = open("procs.txt", "w")
+        for proc in PROCESSES:
+            # RMS
+            if proc.period == 0 and proc.deadline_start == -1:
+                f.write(f"{proc.pid},{proc.deadline},{proc.time_period}\n")
+            # EDF-p
+            elif proc.deadline_start == -1:
+                f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
+            # EDF-a
+            else:
+                #TODO: no me se el orden
+                #f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
+                0 #TODO: quitar esto
+        subprocess.run(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"])
+        os.remove("procs.txt")
     
     def select_file_button_command(self):
         self.file_name = askopenfilename()
@@ -199,18 +212,20 @@ class App:
                 process_info = (line[0], "None", line[1], line[2], "None","Periodic", "Creado")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
+                self.combo_algorithm.set("RMS")
             # EDF-p            
             elif len(line) == 4:
                 PROCESSES.append(Process(line[0],line[1],line[2],line[3]))
                 process_info = (line[0], "None", line[2], line[3], line[1], "Periodic", "Creado")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
+                self.combo_algorithm.set("EDF-p")
              # EDF-a
             else:
-                # TODO: agregar params relevantes papu2
-                PROCESSES.append(Process(line[0],line[1],line[2]))
-                #process_info = (name, deadline_start, deadline_end, time_period, arrival, "Creado")
-
+                # TODO: agregar params relevantes papu2: Sorry no me sé el orden.
+                PROCESSES.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
+                #process_info = (line[0], deadline_start, deadline_end, duracion, period, arrival, "Creado")
+                self.combo_algorithm.set("EDF-a")
 
     def create_task_button_command(self):
         name = self.CREATE_FORM["name"]["value"].get()
@@ -231,8 +246,6 @@ class App:
     def clear_form(self):
         for key in self.CREATE_FORM:
             self.CREATE_FORM[key]["value"].set("")
-
-        
 
 if __name__ == "__main__":
     root = tk.Tk()

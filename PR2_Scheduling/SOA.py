@@ -36,7 +36,7 @@ def rate_monotonic_scheduling(procs, steps = 15):
                 if proc.remaining_time > 0: 
                     # stats update
                     proc.stats[0] += 1
-                    print(f"Deadline miss. Pid: {proc.pid}, rem: {proc.remaining_time}")
+                    print(f"Deadline mniss. Pid: {proc.pid}, rem: {proc.remaining_time}")
                     proc.stats[3][i] += f"        Deadline miss with {proc.remaining_time} time remaining\n"
                 # reset procs
                 proc.remaining_time = proc.time_period
@@ -56,6 +56,8 @@ def rate_monotonic_scheduling(procs, steps = 15):
             print(f"Giving CPU to pid: {current_proc.pid}, rem: {current_proc.remaining_time}")
             current_proc.stats[3][i] += f"        Running on CPU\n"
             # stats update
+            if current_proc.remaining_time == 0:
+                current_proc.stats[3][i] += f"        Finished execution\n"
             current_proc.stats[1] += 1
             current_proc.stats[2] -= 1 # to account for the sum done in line 32
             for proc in unfinished_procs:
@@ -412,9 +414,10 @@ def configure_system(argv):
             output_file = str(input("Ingrese el nombre del archivo: "))
     timeline = 0
 
+    # timeline output
     arg_index = (argv.index('-tl') if '-tl' in argv else False)
     if arg_index:
-        timeline = argv[arg_index + 1]
+        timeline = int(argv[arg_index + 1])
         arg_index = None
     else:
         timeline = int(input("Desea imprimir el timeline de cada proceso? (1/0): "))

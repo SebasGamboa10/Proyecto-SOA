@@ -8,6 +8,8 @@ from tkinter.filedialog import askopenfilename
 import sys
 import os
 import subprocess
+import time
+import threading
 
 PROCESSES = []
 
@@ -16,6 +18,11 @@ class App:
 
         # variables
         self.file_name = ""
+
+        # output txt
+        self.text_widget = tk.Text(root, wrap="word", width=50, height=50)
+        self.text_widget.pack(pady=10)
+        self.text_widget.place(x=1000, y= 20)
 
         #setting title
         root.title("SOA Proyecto II")
@@ -75,9 +82,14 @@ class App:
                 "value": tk.StringVar(root)
             },
             "time_period": {
+                "text": "Duración",
+                "value": tk.StringVar(root),
+                "active_on": [vlist[0], vlist[1], vlist[2]]
+            },
+            "period": {
                 "text": "Periodo",
                 "value": tk.StringVar(root),
-                "active_on": [vlist[0], vlist[1]]
+                "active_on": [vlist[1]]
             },
             "arrival": {
                 "text": "Llegada",
@@ -194,6 +206,11 @@ class App:
         run_simulation_button["command"] = self.run_simulation_button_command
 
     def on_combobox_change(self, event):
+        #Clear the treeview list items
+        for item in self.tasks_treeview.get_children():
+            self.tasks_treeview.delete(item)
+        PROCESSES.clear()
+
         if self.current_algorithm.get() == "EDF-a":
             self.combo_sub_algorithm.config(state="normal")
         else:
@@ -222,15 +239,32 @@ class App:
             else:
                 is_edf_a = True
                 f.write(f"{proc.pid},{proc.deadline},{proc.time_period},{proc.deadline_start},{proc.arrival_time}\n")
-        params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        #params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        params = ["hola", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        
         if is_edf_a:
             subtype = self.subtype_algorithm.get().split("-")
             deadline = subtype[0]
             unforced_idle_times = "0" if "not" in subtype[1] else "1"
             params = params + ["-s", deadline, "-u", unforced_idle_times] 
             print(params)
-        x = subprocess.Popen(params)
+
+        #os.system('SOA.py -t 20 -a EDF-p -i edf2.txt -o output.txt -tl 1')
+        #x = subprocess.Popen(params)
+        main(params)
+         # Crear un thread para ejecutar el proceso secundario
+        ###thread_proceso = threading.Thread(target=self.ejecutar_proceso(params))
+
+        # Iniciar el thread
+        ###thread_proceso.start()
+
+        #while x.poll() is None:
+        #    pass
+            
+        #x = subprocess(x, True)
         #x.wait()
+        #time.sleep(3)
+        self.read_output_file()
         #os.remove("procs.txt")
     
     def select_file_button_command(self):
@@ -238,6 +272,7 @@ class App:
         for item in self.tasks_treeview.get_children():
             self.tasks_treeview.delete(item)
         self.file_name = askopenfilename()
+        PROCESSES.clear()
         f = open(self.file_name, "r")
         while True:
             line = f.readline().strip().split(',')
@@ -272,20 +307,44 @@ class App:
         deadline_start = self.CREATE_FORM["deadline_start"]["value"].get()
         deadline_end = self.CREATE_FORM["deadline_end"]["value"].get()
         time_period = self.CREATE_FORM["time_period"]["value"].get()
+        period = self.CREATE_FORM["period"]["value"].get()
         arrival = self.CREATE_FORM["arrival"]["value"].get()
 
-        # if not all([name, deadline_start, deadline_end, time_period, arrival]):
-        #     messagebox.showerror("Error", "Por favor, complete todos los campos.")
-        #     return
+        #print(type(self.CREATE_FORM["name"]["value"].get()), type(self.CREATE_FORM["deadline_end"]["value"].get()), self.CREATE_FORM["time_period"]["value"].get())
+        if ( not (self.CREATE_FORM["name"]["value"].get() == "") and 
+            (self.combo_algorithm.get() == "RMS" and not (self.CREATE_FORM["deadline_end"]["value"].get() == "") and not (self.CREATE_FORM["time_period"]["value"].get()) == "") or
+            (self.combo_algorithm.get() == "EDF-p" and not (self.CREATE_FORM["deadline_end"]["value"].get() == "") and not (self.CREATE_FORM["time_period"]["value"].get()) == "" and not (self.CREATE_FORM["period"]["value"].get()) == "") or
+            (self.combo_algorithm.get() == "EDF-a" and not (self.CREATE_FORM["deadline_end"]["value"].get() == "") and not (self.CREATE_FORM["time_period"]["value"].get()) == "" and not (self.CREATE_FORM["deadline_start"]["value"].get()) == "" and not (self.CREATE_FORM["arrival"]["value"].get()) == "")
+        ):
+            # if not all([name, deadline_start, deadline_end, time_period, arrival]):
+            #     messagebox.showerror("Error", "Por favor, complete todos los campos.")
+            #     return
 
-        PROCESSES.append(Process(name, deadline_end, time_period, deadline_start, arrival))
-        process_info = (name, deadline_start, deadline_end, time_period, arrival, "Creado")
-        self.tasks_treeview.insert("", tk.END, values=process_info)
-        self.clear_form()
+            PROCESSES.append(Process(name, period, deadline_end, time_period, deadline_start, arrival))
+            process_info = (name, deadline_start, deadline_end, time_period, period, arrival, "Creado")
+            self.tasks_treeview.insert("", tk.END, values=process_info)
+            self.clear_form()
 
     def clear_form(self):
         for key in self.CREATE_FORM:
             self.CREATE_FORM[key]["value"].set("")
+
+    def read_output_file(self):
+        if ('output.txt'):
+            with open('output.txt', 'r') as file:
+                content = file.read()
+                self.text_widget.delete(1.0, tk.END)  # Clear previous content
+                self.text_widget.insert(tk.END, content)
+
+    def ejecutar_proceso(self, params):
+        # Ejecutar un proceso secundario
+        proceso = subprocess.Popen(params)
+        
+        # Esperar a que el proceso secundario termine
+        proceso.wait(timeout=5)
+        
+        # Realizar cualquier acción adicional después de que el proceso termine
+        print("El proceso secundario ha terminado.")
 
 if __name__ == "__main__":
     root = tk.Tk()

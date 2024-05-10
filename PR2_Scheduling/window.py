@@ -1,14 +1,22 @@
 import tkinter as tk
 import tkinter.font as tkFont
-from SOA import Process
+#from SOA import Process
+from SOA import *
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter.filedialog import askopenfilename
+import sys
+import os
+import subprocess
 
 PROCESSES = []
 
 class App:
     def __init__(self, root):
+
+        # variables
+        self.file_name = ""
+
         #setting title
         root.title("SOA Proyecto II")
         #setting window size
@@ -20,34 +28,36 @@ class App:
         root.geometry(alignstr)
         root.resizable(width=False, height=False)
 
-        self.tasks_treeview = ttk.Treeview(root, columns=("Name", "Deadline Start", "Deadline End", "Time Period", "Arrival", "Status"), show="headings", height=15)
+        self.tasks_treeview = ttk.Treeview(root, columns=("Name", "Deadline Start", "Deadline End", "Proc Time", "Period", "Arrival", "Status"), show="headings", height=15)
         self.tasks_treeview.heading("Name", text="Nombre de la tarea")
         self.tasks_treeview.heading("Deadline Start", text="Deadline de inicio")
         self.tasks_treeview.heading("Deadline End", text="Deadline de fin")
-        self.tasks_treeview.heading("Time Period", text="Periodo")
+        self.tasks_treeview.heading("Proc Time", text="Duración")
+        self.tasks_treeview.heading("Period", text="Periodo")
         self.tasks_treeview.heading("Arrival", text="Llegada")
         self.tasks_treeview.heading("Status", text="Estado")
         self.tasks_treeview.column("Name", width=150)
         self.tasks_treeview.column("Deadline Start", width=120)
         self.tasks_treeview.column("Deadline End", width=120)
-        self.tasks_treeview.column("Time Period", width=120)
+        self.tasks_treeview.column("Proc Time", width=120)
+        self.tasks_treeview.column("Period", width=120)
         self.tasks_treeview.column("Arrival", width=120)
         self.tasks_treeview.column("Status", width=120)
         self.tasks_treeview.place(x=20, y=20)
 
         scrollbar = ttk.Scrollbar(root, orient=tk.VERTICAL, command=self.tasks_treeview.yview)
-        scrollbar.place(x=775, y=20, height=320)
+        scrollbar.place(x=895, y=20, height=320)
         self.tasks_treeview.config(yscrollcommand=scrollbar.set)
 
         vlist = ["RMS", "EDF Períodico", "EDF Aperíodico", "EDF Aperíodico (Inactividad no forzada)"]
         
 
         self.current_algorithm = tk.StringVar(value="RMS")
-        combo_algorithm = ttk.Combobox(root, values = vlist)
-        combo_algorithm.set("RMS")
-        combo_algorithm["textvariable"] = self.current_algorithm
-        combo_algorithm.place(x=380,y=560,width=275,height=40)
-        combo_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
+        self.combo_algorithm = ttk.Combobox(root, values = vlist)
+        self.combo_algorithm.set("RMS")
+        self.combo_algorithm["textvariable"] = self.current_algorithm
+        self.combo_algorithm.place(x=380,y=560,width=275,height=40)
+        self.combo_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
 
 
         self.CREATE_FORM = {
@@ -167,11 +177,40 @@ class App:
                 self.CREATE_FORM[key]["entry"].config(state="disabled")
 
     def run_simulation_button_command(self):
-        pass
+        # run python3 SOA.py -t 20 -a EDF-p -i edf2.txt -o o.txt -tl 1
+        #ttk.Button(win, text= "Open", command= open_prompt).pack()
+        #os.system('SOA.py -t 20 -a EDF-p -i edf2.txt -o o.txt -tl 1')
+        #TODO: crear archivo de input a partir de PROCESSES
 
+        subprocess.run(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "rms.txt", "-o", "o.txt", "-tl", "0"])
+    
     def select_file_button_command(self):
-        filename = askopenfilename()
-        print(filename)
+        self.file_name = askopenfilename()
+        f = open(self.file_name, "r")
+        while True:
+            line = f.readline().strip().split(',')
+            #print(line)
+            if len(line) < 2:
+                break
+            line = [int(i) for i in line] # str to int
+            #"RMS":
+            if len(line) == 3:
+                PROCESSES.append(Process(line[0],0,line[1],line[2]))
+                process_info = (line[0], "None", line[1], line[2], "None","Periodic", "Creado")
+                self.tasks_treeview.insert("", tk.END, values=process_info)
+                self.clear_form()
+            # EDF-p            
+            elif len(line) == 4:
+                PROCESSES.append(Process(line[0],line[1],line[2],line[3]))
+                process_info = (line[0], "None", line[2], line[3], line[1], "Periodic", "Creado")
+                self.tasks_treeview.insert("", tk.END, values=process_info)
+                self.clear_form()
+             # EDF-a
+            else:
+                # TODO: agregar params relevantes papu2
+                PROCESSES.append(Process(line[0],line[1],line[2]))
+                #process_info = (name, deadline_start, deadline_end, time_period, arrival, "Creado")
+
 
     def create_task_button_command(self):
         name = self.CREATE_FORM["name"]["value"].get()

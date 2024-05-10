@@ -12,7 +12,7 @@ class Process:
         self.remaining_time = time_period
         self.deadline_start = deadline_start
         self.arrival_time = arrival_time
-        # [[deadline miss, periodos en ejecución, periodos sin ejecución, linea del tiempo?]]
+        # [[deadline miss (end), periodos en ejecución, periodos sin ejecución, linea del tiempo?, deadline miss (start)]]
         self.stats = [0, 0, 0, []] # TODO: Linea del tiempo?
 
 def print_procs(procs):
@@ -94,12 +94,12 @@ def edf_define_running_task(running_task, ready_tasks, unforced_idle_times, exec
             if execution_plan_start_d[execution_plan_indx].pid in ready_tasks:
                 running_task = execution_plan_start_d[execution_plan_indx].pid
                 execution_plan_indx += 1
-                print(f"[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
+                procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
         else:
             earliest_deadline = get_earliest_deadline(procs_map, ready_tasks)
             running_task = earliest_deadline[1]
             ready_tasks.discard(running_task)
-            print(f"[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
+            procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
     return running_task, execution_plan_indx
 
 def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
@@ -125,7 +125,7 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
             procs_map[running_task].remaining_time -= 1
             if procs_map[running_task].remaining_time == 0:
                 tasks_to_process -= 1
-                print(f"[Step: {step}] Task {procs_map[running_task].pid} finished.")
+                procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} finished.")
                 running_task = None
                 if tasks_to_process == 0:
                     continue
@@ -133,13 +133,13 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
         arrived_tasks = arrival_map.get(step)
         if arrived_tasks:
             for arrived_task in  arrived_tasks:
-                print(f"[Step: {step}] Arrived task: {arrived_task}")
+                procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Arrived task: {arrived_task}")
                 deadline_check = step <= procs_map[arrived_task].deadline_start if deadline != "end" else step < procs_map[arrived_task].deadline
                 if deadline_check:
-                    print(f"[Step: {step}] Task {arrived_task} ready.")
+                    procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Task {arrived_task} ready.")
                     ready_tasks.add(arrived_task)
                 else:
-                    print(f"[Step: {step}] Task {arrived_task} will not run.")
+                    procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Task {arrived_task} will not run.")
 
         running_task, execution_plan_indx =  edf_define_running_task( \
             running_task, ready_tasks, unforced_idle_times, execution_plan_start_d, step, procs_map, execution_plan_indx)
@@ -150,29 +150,31 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
         if deadline != "end" and deadlined_start_tasks:
             for deadlined_task in deadlined_start_tasks:
                 if procs_map[deadlined_task].remaining_time == procs_map[deadlined_task].time_period and running_task != deadlined_task:
-                    print(f"[Step: {step}] Missed deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[3].append(f"\t[Step: {step}] Missed start deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[0] += 1
                     tasks_to_process -= 1
                     ready_tasks.discard(deadlined_task)
 
         if deadline != "start" and deadlined_end_tasks:
             for deadlined_task in deadlined_end_tasks:
                 if procs_map[deadlined_task].remaining_time != 0:
-                    print(f"[Step: {step}] Missed end deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[3].append(f"\t[Step: {step}] Missed end deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[0] += 1
                     tasks_to_process -= 1
                     if running_task == deadlined_task:
-                        print(f"[Step: {step}] Task {procs_map[running_task].pid} killed.")
+                        procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} killed.")
                         running_task = None
                         running_task, execution_plan_indx =  \
                             edf_define_running_task(running_task, ready_tasks, unforced_idle_times, execution_plan_start_d, step, procs_map, execution_plan_indx)
                     ready_tasks.discard(deadlined_task)
     
-procs_2 = [
-    Process("A", 130, 20, 110, 10),
-    Process("B", 40, 20, 20, 20),
-    Process("C", 60, 20, 50, 40),
-    Process("D", 100, 20, 90, 50),
-    Process("E", 80, 20, 70, 60)
-]
+# procs_2 = [
+#     Process("A", 130, 20, 110, 10),
+#     Process("B", 40, 20, 20, 20),
+#     Process("C", 60, 20, 50, 40),
+#     Process("D", 100, 20, 90, 50),
+#     Process("E", 80, 20, 70, 60)
+# ]
 
 def EDF_Periodic(tasks, procs, max_period=None):
     
@@ -340,6 +342,7 @@ tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecuc
 def configure_system(argv):
     print("Configuración del sistema:")
     # Alg selection
+    t = -1
     arg_index = (argv.index('-a') if '-a' in argv else False)
     if arg_index:
         alg = argv[arg_index + 1]
@@ -354,6 +357,19 @@ def configure_system(argv):
                 break
             else:
                 print("El algoritmo no es válido")
+    alg_subtype_deadline = "end"
+    if alg == ("EDF-a"):
+        while True:
+            alg_subtype_deadline = str(input("Deadline a usar (end, start, both): "))
+            if alg_subtype_deadline == ('end') or alg_subtype_deadline == ('start') or alg_subtype_deadline == ('both'):
+                break
+            else:
+                print("El tipo de deadline no es válido")
+
+    unforced_idle_times = 0
+    if alg == ("EDF-a"):
+        unforced_idle_times = int(input("Unforced idle times? (1/0): "))
+        
     # Proc input
     arg_index = (argv.index('-i') if '-i' in argv else False)
     if arg_index:
@@ -381,10 +397,18 @@ def configure_system(argv):
                         t = int(input("Ingrese el tiempo de ejecución del proceso: "))
                         procs.append(Process(proc_count,p, d, t))
                     else: # EDF-a
-                        # TODO: agregar params relevantes papu2
-                        d = int(input("Ingrese el deadline del proceso: "))
+                        a = int(input("Ingrese el tiempo de llegada del proceso: "))
                         t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        procs.append(Process(proc_count, d, t))
+                        d_s = -1
+                        d_e = -1
+                        if alg_subtype_deadline == "start":
+                            d_s = int(input("Ingrese el deadline de inicio del proceso: "))
+                        elif alg_subtype_deadline == "end":
+                            d_e = int(input("Ingrese el deadline de fin del proceso: "))
+                        else:
+                            d_s = int(input("Ingrese el deadline de inicio del proceso: "))
+                            d_e = int(input("Ingrese el deadline de fin del proceso: "))
+                        procs.append(Process(proc_count, 0, d_e, t, d_s, a))
                     print ("Proceso creado.")
                 else:
                     break
@@ -394,10 +418,11 @@ def configure_system(argv):
         t = int(argv[arg_index + 1])
         arg_index = None
     else:
-        try:
-            t = int(input("Ingrese el número de iteraciones que desea simular: "))
-        except ValueError:
-            t = 20
+        if alg != ("EDF-a"):
+            try:
+                t = int(input("Ingrese el número de iteraciones que desea simular: "))
+            except ValueError:
+                t = 20
 
     # Output
     output_file = 0
@@ -418,7 +443,7 @@ def configure_system(argv):
         arg_index = None
     else:
         timeline = int(input("Desea imprimir el timeline de cada proceso? (1/0): "))
-    return (procs, alg, t, output_file, timeline)
+    return (procs, alg, t, output_file, timeline, alg_subtype_deadline, unforced_idle_times)
 
 def read_input_file(path, alg):
     procs = []
@@ -436,13 +461,13 @@ def read_input_file(path, alg):
                 procs.append(Process(line[0],line[1],line[2],line[3]))
             else: #EDF-a
                 # TODO: agregar params relevantes papu2
-                procs.append(Process(line[0],line[1],line[2]))
+                procs.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
     else:
         print('No se encontró el archivo')
     return procs
 
 def main():
-    procs, alg, t, output_file, timeline = configure_system(sys.argv)
+    procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(sys.argv)
     if alg == 'RMS':
         rate_monotonic_scheduling(procs, t)
 
@@ -452,9 +477,8 @@ def main():
             tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
         EDF_Periodic(tasks, procs)
 
-    #else: #EDF-a
-        # TODO: agregar params relevantes papu2
-        #procs.append(Process(line[0],line[1],line[2]))
+    else: #EDF-a
+        edf_aperiodic(procs, deadline_edf_a, unforced_idle_time)
     
     if output_file:
         f = open(output_file, "w")

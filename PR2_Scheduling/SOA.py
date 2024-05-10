@@ -198,10 +198,15 @@ def EDF_Periodic(tasks, procs, max_period=None):
         #Flags utilizadas para llevar control de reinicio por periodos
         flags = [0] * len(tasks)
 
+        for proc in procs:
+            proc.stats[2] += 1
+
+        ''' #VERSION vieja de stats
         #Inicia aumentador de stats en caso de ser necesario
         procs_lista = []
         for p in procs:
             procs_lista.append(p.stats[1:])
+        
         if nueva_lista == procs_lista and (i+1) != 1:
             for proc in procs:
                 proc.stats[2] += 1
@@ -215,7 +220,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
             for p in procs_copia:
                 nueva_lista.append(p.stats[1:])
         #Final de aumentador de stads
-        
+        '''      
         print('')
         print(f'------- Iter:  {i+1} -------')
         #print(tasks)
@@ -265,7 +270,12 @@ def EDF_Periodic(tasks, procs, max_period=None):
                     task[2] += task[1]
                 
                 print(f'Giving CPU to pid: {task[0]}, rem: {task[3]}')
-
+                for proc in procs:
+                        if proc.pid == task[0]:
+                            proc.stats[1] += 1
+                            proc.stats[2] -= 1
+    
+                '''
                 for proc in procs:
                         if proc.pid == task[0]:
                             proc.stats[1] += 1
@@ -273,7 +283,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
                 for proc in procs:
                         if proc.pid != task[0]:
                             proc.stats[2] += 1
-    
+                ''' 
                 
                 for x, t in enumerate(tasks):
                     if (i + 1) % t[1] == 0 and t[3]==0:
@@ -310,10 +320,10 @@ def EDF_Periodic(tasks, procs, max_period=None):
                                 if t[1] == row[1]:
                                     tasks[x][3] = start[p][3]
                 tasks.sort(key=lambda x: x[2])
-
+                '''
                 for proc in procs:
                     proc.stats[2] += 1
-
+                '''
                 break
 
             if (i+1) % task[1] == 0:                        
@@ -453,7 +463,7 @@ def main():
         tasks = []
         for proc in procs:
             tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
-        EDF_Periodic(tasks, procs)
+        EDF_Periodic(tasks, procs, t)
 
     #else: #EDF-a
         # TODO: agregar params relevantes papu2

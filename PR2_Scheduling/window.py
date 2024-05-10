@@ -174,7 +174,6 @@ class App:
         self.combo_sub_algorithm.set("start-unforced_idle_times")
         self.combo_sub_algorithm["textvariable"] = self.subtype_algorithm
         self.combo_sub_algorithm.place(x=700,y=560,width=190,height=40)
-        self.combo_sub_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
 
         label=tk.Label(root)
         ft = tkFont.Font(family='Times',size=12)
@@ -203,14 +202,14 @@ class App:
         label["text"] = "Tiempo a simular"
         label.place(x=380,y=610)
 
-        entry=tk.Entry(root)
-        entry["borderwidth"] = "1px"
+        self.max_time_entry=tk.Entry(root)
+        self.max_time_entry["borderwidth"] = "1px"
         ft = tkFont.Font(family='Times',size=12)
-        entry["font"] = ft
-        entry["fg"] = "#333333"
-        entry["justify"] = "center"
-        entry["textvariable"] = self.max_simulation_time_entry
-        entry.place(x=380,y=640,width=276,height=40)
+        self.max_time_entry["font"] = ft
+        self.max_time_entry["fg"] = "#333333"
+        self.max_time_entry["justify"] = "center"
+        self.max_time_entry["textvariable"] = self.max_simulation_time_entry
+        self.max_time_entry.place(x=380,y=640,width=276,height=40)
 
         run_simulation_button=tk.Button(root)
         run_simulation_button["bg"] = "#f0f0f0"
@@ -232,8 +231,10 @@ class App:
 
         if self.current_algorithm.get() == "EDF-a":
             self.combo_sub_algorithm.config(state="normal")
+            self.max_time_entry.config(state="disabled")
         else:
             self.combo_sub_algorithm.config(state="disabled")
+            self.max_time_entry.config(state="normal")
         for key in self.CREATE_FORM:
             if ("active_on" not in self.CREATE_FORM[key] or self.current_algorithm.get() in self.CREATE_FORM[key]["active_on"]):
                 self.CREATE_FORM[key]["entry"].config(state="normal")

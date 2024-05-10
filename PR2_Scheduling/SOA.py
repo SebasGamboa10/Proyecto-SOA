@@ -96,12 +96,12 @@ def edf_define_running_task(running_task, ready_tasks, unforced_idle_times, exec
             if execution_plan_start_d[execution_plan_indx].pid in ready_tasks:
                 running_task = execution_plan_start_d[execution_plan_indx].pid
                 execution_plan_indx += 1
-                procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
+                procs_map[running_task].stats[3].append(f"\n\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
         else:
             earliest_deadline = get_earliest_deadline(procs_map, ready_tasks)
             running_task = earliest_deadline[1]
             ready_tasks.discard(running_task)
-            procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
+            procs_map[running_task].stats[3].append(f"\n\t[Step: {step}] Task {procs_map[running_task].pid} assigned to CPU.")
     return running_task, execution_plan_indx
 
 def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
@@ -124,10 +124,11 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
 
         # Task running
         if running_task:
+            procs_map[running_task].stats[1] += 1
             procs_map[running_task].remaining_time -= 1
             if procs_map[running_task].remaining_time == 0:
                 tasks_to_process -= 1
-                procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} finished.")
+                procs_map[running_task].stats[3].append(f"\n\t[Step: {step}] Task {procs_map[running_task].pid} finished.\n")
                 running_task = None
                 if tasks_to_process == 0:
                     continue
@@ -135,13 +136,13 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
         arrived_tasks = arrival_map.get(step)
         if arrived_tasks:
             for arrived_task in  arrived_tasks:
-                procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Arrived task: {arrived_task}")
+                procs_map[arrived_task].stats[3].append(f"\n\t[Step: {step}] Arrived task: {arrived_task}")
                 deadline_check = step <= procs_map[arrived_task].deadline_start if deadline != "end" else step < procs_map[arrived_task].deadline
                 if deadline_check:
-                    procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Task {arrived_task} ready.")
+                    procs_map[arrived_task].stats[3].append(f"\n\t[Step: {step}] Task {arrived_task} ready.")
                     ready_tasks.add(arrived_task)
                 else:
-                    procs_map[arrived_task].stats[3].append(f"\t[Step: {step}] Task {arrived_task} will not run.")
+                    procs_map[arrived_task].stats[3].append(f"\n\t[Step: {step}] Task {arrived_task} will not run.")
 
         running_task, execution_plan_indx =  edf_define_running_task( \
             running_task, ready_tasks, unforced_idle_times, execution_plan_start_d, step, procs_map, execution_plan_indx)
@@ -152,7 +153,7 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
         if deadline != "end" and deadlined_start_tasks:
             for deadlined_task in deadlined_start_tasks:
                 if procs_map[deadlined_task].remaining_time == procs_map[deadlined_task].time_period and running_task != deadlined_task:
-                    procs_map[deadlined_task].stats[3].append(f"\t[Step: {step}] Missed start deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[3].append(f"\n\t[Step: {step}] Missed start deadline for {deadlined_task}.")
                     procs_map[deadlined_task].stats[0] += 1
                     tasks_to_process -= 1
                     ready_tasks.discard(deadlined_task)
@@ -160,15 +161,17 @@ def edf_aperiodic(procs, deadline="start", unforced_idle_times=False):
         if deadline != "start" and deadlined_end_tasks:
             for deadlined_task in deadlined_end_tasks:
                 if procs_map[deadlined_task].remaining_time != 0:
-                    procs_map[deadlined_task].stats[3].append(f"\t[Step: {step}] Missed end deadline for {deadlined_task}.")
+                    procs_map[deadlined_task].stats[3].append(f"\n\t[Step: {step}] Missed end deadline for {deadlined_task}.")
                     procs_map[deadlined_task].stats[0] += 1
                     tasks_to_process -= 1
                     if running_task == deadlined_task:
-                        procs_map[running_task].stats[3].append(f"\t[Step: {step}] Task {procs_map[running_task].pid} killed.")
+                        procs_map[running_task].stats[3].append(f"\n\t[Step: {step}] Task {procs_map[running_task].pid} killed.\n")
                         running_task = None
                         running_task, execution_plan_indx =  \
                             edf_define_running_task(running_task, ready_tasks, unforced_idle_times, execution_plan_start_d, step, procs_map, execution_plan_indx)
                     ready_tasks.discard(deadlined_task)
+    for proc in procs_map:
+        procs_map[proc].stats[2] = step - procs_map[proc].stats[1]
     
 # procs_2 = [
 #     Process("A", 130, 20, 110, 10),
@@ -552,10 +555,11 @@ def main(argv=None):
         f = open(output_file, "w")
         f.write("------- Stats -------\n")
         for proc in procs:
+                total_time =  t if alg != "EDF-a" else (proc.stats[1] + proc.stats[2])
                 f.write(f'''Proc {proc.pid}:
 Deadline misses:       {proc.stats[0]}
-Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
-Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)\n''')
+Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/total_time*100,2)} %)
+Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/total_time*100,2)} %)\n''')
                 if timeline:
                     f.write(("-------- Timeline --------\n"))
                     for iter in proc.stats[3]:

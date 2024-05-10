@@ -193,7 +193,7 @@ class App:
         self.combo_show_timelines.set("Sí")
         self.combo_show_timelines["textvariable"] = self.show_timelines
         self.combo_show_timelines.place(x=700,y=640,width=190,height=40)
-        self.combo_show_timelines.bind("<<ComboboxSelected>>", self.on_combobox_change)
+        #self.combo_show_timelines.bind("<<ComboboxSelected>>", self.on_combobox_change)
 
         label=tk.Label(root)
         ft = tkFont.Font(family='Times',size=12)
@@ -260,7 +260,9 @@ class App:
                 f.write(f"{proc.pid},{proc.deadline},{proc.time_period},{proc.deadline_start},{proc.arrival_time}\n")
         f.close()
         #params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
-        params = ["Scheduling", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        #tl = 
+        #print(self.combo_show_timelines.get(), type(self.combo_show_timelines.get()))
+        params = ["Scheduling", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", f"{1 if 'Sí' in self.combo_show_timelines.get() else 0}"]
         
         if is_edf_a:
             subtype = self.subtype_algorithm.get().split("-")
@@ -304,7 +306,7 @@ class App:
              # EDF-a
             else:
                 PROCESSES.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
-                process_info = (line[0], "None", line[3], line[1], line[2], line[4], "Creado")
+                process_info = (line[0], line[3], line[1], line[2], "None", line[4], "Creado")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("EDF-a")

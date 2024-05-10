@@ -6,6 +6,7 @@ Not-scheduled periods: 11 (73.33 %)
 -------- Timeline --------
 Iter 0:
         Running on CPU
+        Finished execution
 Iter 1:
         Waiting to reinitialize
 Iter 2:
@@ -15,6 +16,7 @@ Iter 3:
 Iter 4:
         Initializing process
         Running on CPU
+        Finished execution
 Iter 5:
         Waiting to reinitialize
 Iter 6:
@@ -24,6 +26,7 @@ Iter 7:
 Iter 8:
         Initializing process
         Running on CPU
+        Finished execution
 Iter 9:
         Waiting to reinitialize
 Iter 10:
@@ -33,6 +36,7 @@ Iter 11:
 Iter 12:
         Initializing process
         Running on CPU
+        Finished execution
 Iter 13:
         Waiting to reinitialize
 Iter 14:
@@ -49,6 +53,7 @@ Iter 1:
         Running on CPU
 Iter 2:
         Running on CPU
+        Finished execution
 Iter 3:
         Waiting to reinitialize
 Iter 4:
@@ -58,6 +63,7 @@ Iter 5:
         Running on CPU
 Iter 6:
         Running on CPU
+        Finished execution
 Iter 7:
         Waiting to reinitialize
 Iter 8:
@@ -69,6 +75,7 @@ Iter 10:
         Running on CPU
 Iter 11:
         Running on CPU
+        Finished execution
 Iter 12:
         Waiting to reinitialize
 Iter 13:
@@ -103,6 +110,7 @@ Iter 8:
         Waiting for CPU
 Iter 9:
         Running on CPU
+        Finished execution
 Iter 10:
         Waiting to reinitialize
 Iter 11:

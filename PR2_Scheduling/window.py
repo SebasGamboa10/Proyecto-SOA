@@ -161,7 +161,6 @@ class App:
         label["text"] = "Subclase de algoritmo"
         label.place(x=700,y=530)
 
-
         self.subtype_algorithm = tk.StringVar(value="start-unforced_idle_times")
         subtype_algorithm_list = [
             "start-unforced_idle_times",
@@ -176,6 +175,25 @@ class App:
         self.combo_sub_algorithm["textvariable"] = self.subtype_algorithm
         self.combo_sub_algorithm.place(x=700,y=560,width=190,height=40)
         self.combo_sub_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
+
+        label=tk.Label(root)
+        ft = tkFont.Font(family='Times',size=12)
+        label["font"] = ft
+        label["justify"] = "center"
+        label["fg"] = "#333333"
+        label["text"] = "Habilitar Timelines"
+        label.place(x=700,y=610)
+
+        self.show_timelines = tk.StringVar(value="Sí")
+        show_timelines_list = [
+            "Sí",
+            "No",
+        ]
+        self.combo_show_timelines = ttk.Combobox(root, values = show_timelines_list, state="normal")
+        self.combo_show_timelines.set("Sí")
+        self.combo_show_timelines["textvariable"] = self.show_timelines
+        self.combo_show_timelines.place(x=700,y=640,width=190,height=40)
+        self.combo_show_timelines.bind("<<ComboboxSelected>>", self.on_combobox_change)
 
         label=tk.Label(root)
         ft = tkFont.Font(family='Times',size=12)
@@ -205,11 +223,12 @@ class App:
         run_simulation_button.place(x=380,y=730,width=275,height=40)
         run_simulation_button["command"] = self.run_simulation_button_command
 
-    def on_combobox_change(self, event):
+    def on_combobox_change(self, reset_flag=0):
         #Clear the treeview list items
-        for item in self.tasks_treeview.get_children():
-            self.tasks_treeview.delete(item)
-        PROCESSES.clear()
+        if reset_flag:
+            for item in self.tasks_treeview.get_children():
+                self.tasks_treeview.delete(item)
+            PROCESSES.clear()
 
         if self.current_algorithm.get() == "EDF-a":
             self.combo_sub_algorithm.config(state="normal")
@@ -273,6 +292,7 @@ class App:
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("RMS")
+                self.combo_sub_algorithm.config(state="disabled")
             # EDF-p            
             elif len(line) == 4:
                 PROCESSES.append(Process(line[0],line[1],line[2],line[3]))
@@ -280,6 +300,7 @@ class App:
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("EDF-p")
+                self.combo_sub_algorithm.config(state="disabled")
              # EDF-a
             else:
                 PROCESSES.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
@@ -287,6 +308,8 @@ class App:
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("EDF-a")
+                self.combo_sub_algorithm.config(state="normal")
+            
 
     def create_task_button_command(self):
         name = self.CREATE_FORM["name"]["value"].get()

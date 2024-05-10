@@ -198,6 +198,9 @@ class App:
         os.remove("procs.txt")
     
     def select_file_button_command(self):
+        #Clear the treeview list items
+        for item in self.tasks_treeview.get_children():
+            self.tasks_treeview.delete(item)
         self.file_name = askopenfilename()
         f = open(self.file_name, "r")
         while True:

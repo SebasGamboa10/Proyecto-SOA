@@ -194,8 +194,9 @@ class App:
                 #TODO: no me se el orden
                 #f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
                 0 #TODO: quitar esto
-        subprocess.run(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"])
-        os.remove("procs.txt")
+        x = subprocess.Popen(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"])
+        #x.wait()
+        #os.remove("procs.txt")
     
     def select_file_button_command(self):
         #Clear the treeview list items

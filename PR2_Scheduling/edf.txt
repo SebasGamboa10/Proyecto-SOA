@@ -3,6 +3,6 @@
 3,8,6,5
 
 formato.
-PID, periodo, d, t.
+PID, periodo, deadline, tiempo_ejecucion.
 
 

@@ -200,6 +200,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
 
         for proc in procs:
             proc.stats[2] += 1
+            proc.stats[3].append(f"Iter {i+1}:\n")
 
         ''' #VERSION vieja de stats
         #Inicia aumentador de stats en caso de ser necesario
@@ -223,6 +224,7 @@ def EDF_Periodic(tasks, procs, max_period=None):
         '''      
         print('')
         print(f'------- Iter:  {i+1} -------')
+
         #print(tasks)
         for task in tasks:
 
@@ -233,6 +235,8 @@ def EDF_Periodic(tasks, procs, max_period=None):
                     for proc in procs:
                         if proc.pid == task[0]:
                             proc.stats[0] += 1
+                            proc.stats[3][i] += f"        Deadline miss with {proc.remaining_time} time remaining\n"
+
 
                     for x, t in enumerate(tasks):
                         if task == t:
@@ -240,6 +244,9 @@ def EDF_Periodic(tasks, procs, max_period=None):
                                 if flags[t[0]-1] == 0:
                                     #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                                     print(f'Initializing process by period: Pid: {t[0]}')
+                                    for proc in procs:
+                                        if proc.pid == task[0]:
+                                            proc.stats[3][i] += f"        Initializing process\n"
                                     flags[t[0]-1] = 1
                                     task[2] += task[1]
                                     for p, row in enumerate(start):
@@ -254,6 +261,9 @@ def EDF_Periodic(tasks, procs, max_period=None):
                             if flags[t[0]-1] == 0:
                                 #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                                 print(f'Initializing process by period: Pid: {t[0]}')
+                                for proc in procs:
+                                    if proc.pid == task[0]:
+                                        proc.stats[3][i] += f"        Initializing process\n"
                                 flags[t[0]-1] = 1
                                 task[2] += task[1]
                                 for p, row in enumerate(start):
@@ -270,10 +280,17 @@ def EDF_Periodic(tasks, procs, max_period=None):
                     task[2] += task[1]
                 
                 print(f'Giving CPU to pid: {task[0]}, rem: {task[3]}')
+                
                 for proc in procs:
                         if proc.pid == task[0]:
                             proc.stats[1] += 1
                             proc.stats[2] -= 1
+                            proc.stats[3][i] += f"        Running on CPU\n"
+                            if task[3] == 0:
+                                proc.stats[3][i] += f"        Finished execution\n"
+                        else:
+                            proc.stats[3][i] += f"        Waiting for CPU\n"
+
     
                 '''
                 for proc in procs:
@@ -291,6 +308,9 @@ def EDF_Periodic(tasks, procs, max_period=None):
                             #tiene t[3]==0 porque sumo en el if anterior
                             #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                             print(f'Initializing process by period: Pid: {t[0]}')
+                            for proc in procs:
+                                if proc.pid == t[0]:
+                                    proc.stats[3][i] += f"        Initializing process\n"
                             flags[t[0]-1] = 1
                             for p, row in enumerate(start):
                                 if t[1] == row[1]:
@@ -301,6 +321,9 @@ def EDF_Periodic(tasks, procs, max_period=None):
                             #esto se coloca porque si alguien mas se debia reiniciar al haber un break lo mataria antes de hacerlo
                             #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                             print(f'Initializing process by period: Pid: {t[0]}')
+                            for proc in procs:
+                                if proc.pid == t[0]:
+                                    proc.stats[3][i] += f"        Initializing process\n"
                             flags[t[0]-1] = 1
                             t[2] += t[1]
                             for p, row in enumerate(start):
@@ -315,10 +338,17 @@ def EDF_Periodic(tasks, procs, max_period=None):
                         if flags[t[0]-1] == 0:
                             #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                             print(f'Initializing process by period: Pid: {t[0]}')
+                            for proc in procs:
+                                if proc.pid == t[0]:
+                                    proc.stats[3][i] += f"        Initializing process\n"
                             flags[t[0]-1] = 1
                             for p, row in enumerate(start):
                                 if t[1] == row[1]:
                                     tasks[x][3] = start[p][3]
+                    else:
+                        for proc in procs:
+                            if proc.pid == t[0]:
+                                proc.stats[3][i] += f"        Waiting to reinitialize\n"
                 tasks.sort(key=lambda x: x[2])
                 '''
                 for proc in procs:
@@ -332,6 +362,9 @@ def EDF_Periodic(tasks, procs, max_period=None):
                         if flags[t[0]-1] == 0:
                             #print(f'El proceso {t} se esta iniciando nuevamente por su periodo')
                             print(f'Initializing process by period: Pid: {t[0]}')
+                            for proc in procs:
+                                if proc.pid == t[0]:
+                                    proc.stats[3][i] += f"        Initializing process\n"
                             flags[t[0]-1] = 1
                             for p, row in enumerate(start):
                                 if t[1] == row[1]:

@@ -560,7 +560,7 @@ Run the program with the following line: python3 window.py
         sys.exit()
     
     # get args from terminal or GUI
-    print(argv)
+    #print(argv)
     if argv:
         procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(argv)
     else:

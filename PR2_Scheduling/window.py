@@ -250,10 +250,10 @@ class App:
         is_edf_a = False
         for proc in PROCESSES:
             # RMS
-            if proc.period == 0 and proc.deadline_start == -1:
+            if (proc.period == 0 or proc.period == "") and (proc.deadline_start == -1 or proc.deadline_start == "") :
                 f.write(f"{proc.pid},{proc.deadline},{proc.time_period}\n")
             # EDF-p
-            elif proc.deadline_start == -1:
+            elif proc.deadline_start == -1 or proc.deadline_start == "":
                 f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
             # EDF-a
             else:
@@ -263,7 +263,7 @@ class App:
         #params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
         #tl = 
         #print(self.combo_show_timelines.get(), type(self.combo_show_timelines.get()))
-        params = ["Scheduling", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", f"{1 if 'Sí' in self.combo_show_timelines.get() else 0}"]
+        params = ["Scheduling", "-t", f"{self.max_time_entry.get() if not (self.max_time_entry.get() == '') else 20}", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", f"{1 if 'Sí' in self.combo_show_timelines.get() else 0}"]
         
         if is_edf_a:
             subtype = self.subtype_algorithm.get().split("-")
@@ -291,7 +291,7 @@ class App:
             #"RMS":
             if len(line) == 3:
                 PROCESSES.append(Process(line[0],0,line[1],line[2]))
-                process_info = (line[0], "None", line[1], line[2], "None","Periodic", "Creado")
+                process_info = (line[0], "", line[1], line[2], "","", "")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("RMS")
@@ -299,7 +299,7 @@ class App:
             # EDF-p            
             elif len(line) == 4:
                 PROCESSES.append(Process(line[0],line[1],line[2],line[3]))
-                process_info = (line[0], "None", line[2], line[3], line[1], "Periodic", "Creado")
+                process_info = (line[0], "", line[2], line[3], line[1], "", "")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("EDF-p")
@@ -307,11 +307,12 @@ class App:
              # EDF-a
             else:
                 PROCESSES.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
-                process_info = (line[0], line[3], line[1], line[2], "None", line[4], "Creado")
+                process_info = (line[0], line[3], line[1], line[2], "", line[4], "")
                 self.tasks_treeview.insert("", tk.END, values=process_info)
                 self.clear_form()
                 self.combo_algorithm.set("EDF-a")
                 self.combo_sub_algorithm.config(state="normal")
+        self.on_combobox_change()
             
 
     def create_task_button_command(self):

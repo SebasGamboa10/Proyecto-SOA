@@ -26,11 +26,11 @@ def print_procs(procs):
 def rate_monotonic_scheduling(procs, steps = 15):
     # simulate
     for i in range(steps):
-        print("------- Iter: ", i, "-------")
+        print("------- Iter: ", i+1, "-------")
         for proc in procs:
             # Stats update (assuming no proc is used in this iter)
             proc.stats[2] += 1
-            proc.stats[3].append(f"Iter {i}:\n")
+            proc.stats[3].append(f"Iter {i+1}:\n")
             # Get deadline Misses
             if i > 0 and i % proc.deadline == 0:
                 if proc.remaining_time > 0: 
@@ -540,6 +540,7 @@ def main(argv=None):
 ------------              
 Help: 
 ------------
+Running the program from command line:
 Run the program with the following line: python3 SOA.py -t iterations -a algorithm -i input_file -o output_file -tl show_timeline
 with: 
 -t:  int (number of iterations to simulate)
@@ -552,6 +553,9 @@ with:
 -o:  str (path to output file)
 -tl: int (flag to show each process' timeline, input 1 to show, or 0 to ignore)
 ------------              
+Running the program from GUI:
+Run the program with the following line: python3 window.py
+------------  
               ''')
         sys.exit()
     

@@ -533,6 +533,29 @@ def read_input_file(path, alg):
     return procs
 
 def main(argv=None):
+
+    # help
+    if '-h' in sys.argv: 
+        print('''
+------------              
+Help: 
+------------
+Run the program with the following line: python3 SOA.py -t iterations -a algorithm -i input_file -o output_file -tl show_timeline
+with: 
+-t:  int (number of iterations to simulate)
+-a:  str (algorithm to use (RMS, EDF-p or EDF-a))
+-i:  str (path to input file to read processes)
+     input file format: 
+        for RMS:   PID, Deadline, Duration.
+        for EDF-p: PID, Period, Deadline, Duration.
+        for EDF-a: PID, End Deadline, Duration, Start Deadline, Arrival Time.
+-o:  str (path to output file)
+-tl: int (flag to show each process' timeline, input 1 to show, or 0 to ignore)
+------------              
+              ''')
+        sys.exit()
+    
+    # get args from terminal or GUI
     print(argv)
     if argv:
         procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(argv)

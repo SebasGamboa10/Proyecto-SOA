@@ -1,0 +1,10 @@
+1,130,20,110,10
+2,40,20,20,20
+3,60,20,50,40
+4,100,20,90,50
+5,80,20,70,60
+
+formato.
+PID, deadline_end, execution_time, deadline_start, arrival_time
+
+

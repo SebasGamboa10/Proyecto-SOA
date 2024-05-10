@@ -191,9 +191,7 @@ class App:
                 f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
             # EDF-a
             else:
-                #TODO: no me se el orden
-                #f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
-                0 #TODO: quitar esto
+                f.write(f"{proc.pid},{proc.deadline},{proc.time_period},{proc.deadline_start},{proc.arrival_time}\n")
         x = subprocess.Popen(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"])
         #x.wait()
         #os.remove("procs.txt")

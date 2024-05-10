@@ -49,7 +49,7 @@ class App:
         scrollbar.place(x=895, y=20, height=320)
         self.tasks_treeview.config(yscrollcommand=scrollbar.set)
 
-        vlist = ["RMS", "EDF Períodico", "EDF Aperíodico", "EDF Aperíodico (Inactividad no forzada)"]
+        vlist = ["RMS", "EDF-p", "EDF-a"]
         
 
         self.current_algorithm = tk.StringVar(value="RMS")
@@ -68,7 +68,7 @@ class App:
             "deadline_start": {
                 "text": "Deadline de inicio",
                 "value": tk.StringVar(root),
-                "active_on": [vlist[2], vlist[3]]
+                "active_on": [vlist[2]]
             },
             "deadline_end": {
                 "text": "Deadline de fin",
@@ -82,7 +82,7 @@ class App:
             "arrival": {
                 "text": "Llegada",
                 "value": tk.StringVar(root),
-                "active_on": [vlist[2], vlist[3]]
+                "active_on": [vlist[2]]
             }
 
         }
@@ -146,6 +146,30 @@ class App:
         label["font"] = ft
         label["justify"] = "center"
         label["fg"] = "#333333"
+        label["text"] = "Subclase de algoritmo"
+        label.place(x=700,y=530)
+
+
+        self.subtype_algorithm = tk.StringVar(value="start-unforced_idle_times")
+        subtype_algorithm_list = [
+            "start-unforced_idle_times",
+            "end-unforced_idle_times",
+            "both-unforced_idle_times",
+            "start-not_unforced_idle_times",
+            "end-not_unforced_idle_times",
+            "both-not_unforced_idle_times"
+        ]
+        self.combo_sub_algorithm = ttk.Combobox(root, values = subtype_algorithm_list, state="disabled")
+        self.combo_sub_algorithm.set("start-unforced_idle_times")
+        self.combo_sub_algorithm["textvariable"] = self.subtype_algorithm
+        self.combo_sub_algorithm.place(x=700,y=560,width=190,height=40)
+        self.combo_sub_algorithm.bind("<<ComboboxSelected>>", self.on_combobox_change)
+
+        label=tk.Label(root)
+        ft = tkFont.Font(family='Times',size=12)
+        label["font"] = ft
+        label["justify"] = "center"
+        label["fg"] = "#333333"
         label["text"] = "Tiempo a simular"
         label.place(x=380,y=610)
 
@@ -170,6 +194,10 @@ class App:
         run_simulation_button["command"] = self.run_simulation_button_command
 
     def on_combobox_change(self, event):
+        if self.current_algorithm.get() == "EDF-a":
+            self.combo_sub_algorithm.config(state="normal")
+        else:
+            self.combo_sub_algorithm.config(state="disabled")
         for key in self.CREATE_FORM:
             if ("active_on" not in self.CREATE_FORM[key] or self.current_algorithm.get() in self.CREATE_FORM[key]["active_on"]):
                 self.CREATE_FORM[key]["entry"].config(state="normal")
@@ -182,6 +210,7 @@ class App:
         #os.system('SOA.py -t 20 -a EDF-p -i edf2.txt -o o.txt -tl 1')
         #TODO: crear archivo de input a partir de PROCESSES
         f = open("procs.txt", "w")
+        is_edf_a = False
         for proc in PROCESSES:
             # RMS
             if proc.period == 0 and proc.deadline_start == -1:
@@ -191,8 +220,16 @@ class App:
                 f.write(f"{proc.pid},{proc.period},{proc.deadline},{proc.time_period}\n")
             # EDF-a
             else:
+                is_edf_a = True
                 f.write(f"{proc.pid},{proc.deadline},{proc.time_period},{proc.deadline_start},{proc.arrival_time}\n")
-        x = subprocess.Popen(["python3", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"])
+        params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        if is_edf_a:
+            subtype = self.subtype_algorithm.get().split("-")
+            deadline = subtype[0]
+            unforced_idle_times = "0" if "not" in subtype[1] else "1"
+            params = params + ["-s", deadline, "-u", unforced_idle_times] 
+            print(params)
+        x = subprocess.Popen(params)
         #x.wait()
         #os.remove("procs.txt")
     
@@ -224,9 +261,10 @@ class App:
                 self.combo_algorithm.set("EDF-p")
              # EDF-a
             else:
-                # TODO: agregar params relevantes papu2: Sorry no me sé el orden.
                 PROCESSES.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
-                #process_info = (line[0], deadline_start, deadline_end, duracion, period, arrival, "Creado")
+                process_info = (line[0], "None", line[3], line[1], line[2], line[4], "Creado")
+                self.tasks_treeview.insert("", tk.END, values=process_info)
+                self.clear_form()
                 self.combo_algorithm.set("EDF-a")
 
     def create_task_button_command(self):

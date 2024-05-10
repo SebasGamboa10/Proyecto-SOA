@@ -402,18 +402,35 @@ def configure_system(argv):
                 break
             else:
                 print("El algoritmo no es válido")
+
+    arg_index = (argv.index('-s') if '-s' in argv else False)
     alg_subtype_deadline = "end"
     if alg == ("EDF-a"):
-        while True:
-            alg_subtype_deadline = str(input("Deadline a usar (end, start, both): "))
+        if arg_index:
+            alg_subtype_deadline = argv[arg_index + 1]
+            arg_index = None
             if alg_subtype_deadline == ('end') or alg_subtype_deadline == ('start') or alg_subtype_deadline == ('both'):
-                break
+                pass
             else:
                 print("El tipo de deadline no es válido")
+                sys.exit()
+        else:
+            while True:
+                alg_subtype_deadline = str(input("Deadline a usar (end, start, both): "))
+                if alg_subtype_deadline == ('end') or alg_subtype_deadline == ('start') or alg_subtype_deadline == ('both'):
+                    break
+                else:
+                    print("El tipo de deadline no es válido")
 
+
+    arg_index = (argv.index('-u') if '-u' in argv else False)
     unforced_idle_times = 0
     if alg == ("EDF-a"):
-        unforced_idle_times = int(input("Unforced idle times? (1/0): "))
+        if arg_index:
+            unforced_idle_times = int(argv[arg_index + 1])
+            arg_index = None
+        else:
+            unforced_idle_times = int(input("Unforced idle times? (1/0): "))
         
     # Proc input
     arg_index = (argv.index('-i') if '-i' in argv else False)

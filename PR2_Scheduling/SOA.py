@@ -541,7 +541,7 @@ def main(argv=None):
 Help: 
 ------------
 Running the program from command line:
-Run the program with the following line: python3 SOA.py -t iterations -a algorithm -i input_file -o output_file -tl show_timeline
+Run the program with the following line: python3 SOA.py -t iterations -a algorithm -i input_file -o output_file -tl show_timeline (-u unforced_idle_times -s deadline)
 with: 
 -t:  int (number of iterations to simulate)
 -a:  str (algorithm to use (RMS, EDF-p or EDF-a))
@@ -552,6 +552,8 @@ with:
         for EDF-a: PID, End Deadline, Duration, Start Deadline, Arrival Time.
 -o:  str (path to output file)
 -tl: int (flag to show each process' timeline, input 1 to show, or 0 to ignore)
+-s EDF-a ONLY: deadline [start, end, both]
+-u EDF-a ONLY: unblocked idle times [1, 0]
 ------------              
 Running the program from GUI:
 Run the program with the following line: python3 window.py

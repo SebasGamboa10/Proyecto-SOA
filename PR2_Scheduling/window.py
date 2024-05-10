@@ -239,8 +239,9 @@ class App:
             else:
                 is_edf_a = True
                 f.write(f"{proc.pid},{proc.deadline},{proc.time_period},{proc.deadline_start},{proc.arrival_time}\n")
+        f.close()
         #params = ["python", "SOA.py", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
-        params = ["hola", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
+        params = ["Scheduling", "-t", "20", "-a", f"{self.combo_algorithm.get()}", "-i", "procs.txt", "-o", "output.txt", "-tl", "0"]
         
         if is_edf_a:
             subtype = self.subtype_algorithm.get().split("-")
@@ -249,23 +250,8 @@ class App:
             params = params + ["-s", deadline, "-u", unforced_idle_times] 
             print(params)
 
-        #os.system('SOA.py -t 20 -a EDF-p -i edf2.txt -o output.txt -tl 1')
-        #x = subprocess.Popen(params)
         main(params)
-         # Crear un thread para ejecutar el proceso secundario
-        ###thread_proceso = threading.Thread(target=self.ejecutar_proceso(params))
-
-        # Iniciar el thread
-        ###thread_proceso.start()
-
-        #while x.poll() is None:
-        #    pass
-            
-        #x = subprocess(x, True)
-        #x.wait()
-        #time.sleep(3)
         self.read_output_file()
-        #os.remove("procs.txt")
     
     def select_file_button_command(self):
         #Clear the treeview list items
@@ -335,16 +321,6 @@ class App:
                 content = file.read()
                 self.text_widget.delete(1.0, tk.END)  # Clear previous content
                 self.text_widget.insert(tk.END, content)
-
-    def ejecutar_proceso(self, params):
-        # Ejecutar un proceso secundario
-        proceso = subprocess.Popen(params)
-        
-        # Esperar a que el proceso secundario termine
-        proceso.wait(timeout=5)
-        
-        # Realizar cualquier acción adicional después de que el proceso termine
-        print("El proceso secundario ha terminado.")
 
 if __name__ == "__main__":
     root = tk.Tk()

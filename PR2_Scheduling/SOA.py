@@ -385,6 +385,7 @@ tasks = [["Tarea 1", 20, 7, 3],   # (nombre, periodo, deadline, tiempo de ejecuc
 #rate_monotonic_scheduling(procs)
 
 def configure_system(argv):
+
     print("Configuración del sistema:")
     # Alg selection
     t = -1
@@ -528,8 +529,13 @@ def read_input_file(path, alg):
         print('No se encontró el archivo')
     return procs
 
-def main():
-    procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(sys.argv)
+def main(argv=None):
+    print(argv)
+    if argv:
+        procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(argv)
+    else:
+        procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(sys.argv)
+    
     if alg == 'RMS':
         rate_monotonic_scheduling(procs, t)
 

@@ -4,14 +4,13 @@ import sys
 import os.path
 
 class CPU:
-    def __init__(self, id, config):
+    def __init__(self, id):
         self.id = id
         self.pages = []
         self.arrival_times = [] # indexed in the same order as pages.]
         #self.invalid_pages = []
         self.stats = [0,0,0] # page-faults, hits, invalidations 
         self.refs = [[]] # all future refs/ check if this declaration is ok
-        self.config = config
 
     # COMENTARIO PARA MIS BROSKIS: Esto del mode no sé si va a existir o si write es hacer STORE
     def load(self, page, mode='w'):
@@ -29,7 +28,7 @@ class CPU:
             # stats page-fault
             self.stats[0] += 1
             # if theres space in CPU
-            if len(self.pages) < self.config.pages_per_node:
+            if len(self.pages) < pages_per_node:
                 self.pages.append(page)
                 self.arrival_times.append(time)
             
@@ -49,6 +48,7 @@ time = 0
 alg = 'FIFO'
 replication = False
 page_refs = [] # [3],id,[w] # aunque el id lo podemos sacar del indice y ya
+pages_per_node = 0
  
 # System functions
 
@@ -150,21 +150,22 @@ def configure_system(argv):
 
     print("Configuración del sistema:")
     # Alg selection
-    t = -1
     arg_index = (argv.index('-a') if '-a' in argv else False)
     if arg_index:
         alg = argv[arg_index + 1]
         arg_index = None
-        if not((alg == ('RMS')) or (alg == ('EDF-p')) or (alg == ('EDF-a'))):
+        if not((alg == ('FIFO')) or (alg == ('LRU')) or (alg == ('OPTIMAL'))):
             print("El algoritmo no es válido")
             sys.exit()
     else:
         while True:
-            alg = str(input("Ingrese el algoritmo que desea utilizar (RMS, EDF-p, EDF-a): "))
-            if alg == ('RMS') or alg == ('EDF-p') or alg == ('EDF-a'):
+            alg = str(input("Ingrese el algoritmo que desea utilizar (FIFO, LRU, OPTIMAL): "))
+            if alg == ('FIFO') or alg == ('LRU') or alg == ('OPTIMAL'):
                 break
             else:
                 print("El algoritmo no es válido")
+
+    '''
 
     arg_index = (argv.index('-s') if '-s' in argv else False)
     alg_subtype_deadline = "end"
@@ -195,59 +196,35 @@ def configure_system(argv):
         else:
             unforced_idle_times = int(input("Unforced idle times? (1/0): "))
         
+    '''
+    
     # Proc input
     arg_index = (argv.index('-i') if '-i' in argv else False)
     if arg_index:
         path = argv[arg_index + 1]
         arg_index = None
-        procs = read_input_file(path, alg)
+        cpus = read_input_file(path, alg)
     else:
         use_proc_file = int(input("Desea leer procesos de un archivo? (1/0): "))
         if use_proc_file:
-            procs = read_input_file(str(input("Ingrese el nombre del archivo: ")), alg)
+            cpus = read_input_file(str(input("Ingrese el nombre del archivo: ")), alg)
         else:
-            procs = []
-            proc_count = 0
+            cpus = []
             while True:
                 flag = int(input("Desea agregar un proceso? (1/0): "))
-                proc_count += 1
                 if flag:
-                    if alg == ("RMS"):
-                        d = int(input("Ingrese el deadline del proceso: "))
-                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        procs.append(Process(proc_count,0 ,d, t))
-                    elif alg == ("EDF-p"):
-                        p = int(input("Ingrese el periodo del proceso: "))
-                        d = int(input("Ingrese el deadline del proceso: "))
-                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        procs.append(Process(proc_count,p, d, t))
-                    else: # EDF-a
-                        a = int(input("Ingrese el tiempo de llegada del proceso: "))
-                        t = int(input("Ingrese el tiempo de ejecución del proceso: "))
-                        d_s = -1
-                        d_e = -1
-                        if alg_subtype_deadline == "start":
-                            d_s = int(input("Ingrese el deadline de inicio del proceso: "))
-                        elif alg_subtype_deadline == "end":
-                            d_e = int(input("Ingrese el deadline de fin del proceso: "))
-                        else:
-                            d_s = int(input("Ingrese el deadline de inicio del proceso: "))
-                            d_e = int(input("Ingrese el deadline de fin del proceso: "))
-                        procs.append(Process(proc_count, 0, d_e, t, d_s, a))
-                    print ("Proceso creado.")
+                    if alg == ("FIFO"):
+                        id = int(input("Ingrese el id del cpu: "))
+                        cpus.append(CPU(id))
+                    elif alg == ("LRU"):
+                        id = int(input("Ingrese el id del cpu: "))
+                        cpus.append(CPU(id))
+                    else: #optimo
+                        id = int(input("Ingrese el id del cpu: "))
+                        cpus.append(CPU(id))
+                    print ("Configurado con exito.")
                 else:
                     break
-    # Sim time
-    arg_index = (argv.index('-t') if '-t' in argv else False)
-    if arg_index:
-        t = int(argv[arg_index + 1])
-        arg_index = None
-    else:
-        if alg != ("EDF-a"):
-            try:
-                t = int(input("Ingrese el número de iteraciones que desea simular: "))
-            except ValueError:
-                t = 20
 
     # Output
     output_file = 0
@@ -260,16 +237,17 @@ def configure_system(argv):
         if use_out_file:
             # later we will use if output_file: ta ta ta.
             output_file = str(input("Ingrese el nombre del archivo: "))
-    timeline = 0
 
-    # timeline output
-    arg_index = (argv.index('-tl') if '-tl' in argv else False)
+    # replication
+    arg_index = (argv.index('-d') if '-d' in argv else False)
     if arg_index:
-        timeline = int(argv[arg_index + 1])
-        arg_index = None
+        #output_file = argv[arg_index + 1]
+        #arg_index = None
     else:
-        timeline = int(input("Desea imprimir el timeline de cada proceso? (1/0): "))
-    return (procs, alg, t, output_file, timeline, alg_subtype_deadline, unforced_idle_times)
+        d = int(input("Desea replicación?: "))
+        
+
+    return (cpus, alg, output_file, d)
 
 def read_input_file(path, alg):
     procs = []
@@ -323,50 +301,14 @@ Run the program with the following line: python3 window.py
     # get args from terminal or GUI
     #print(argv)
     if argv:
-        procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(argv)
+        cpus = configure_system(argv)
     else:
-        procs, alg, t, output_file, timeline, deadline_edf_a, unforced_idle_time = configure_system(sys.argv)
+        cpus = configure_system(sys.argv)
     
-    if alg == 'RMS':
-        rate_monotonic_scheduling(procs, t)
 
-    elif alg == ("EDF-p"):
-        tasks = []
-        for proc in procs:
-            tasks.append([proc.pid, proc.period, proc.deadline, proc.remaining_time])
-        EDF_Periodic(tasks, procs, t)
-
-    else: #EDF-a
-        edf_aperiodic(procs, deadline_edf_a, unforced_idle_time)
     
     if output_file:
-        f = open(output_file, "w")
-        f.write("------- Stats -------\n")
-        for proc in procs:
-                total_time =  t if alg != "EDF-a" else (proc.stats[1] + proc.stats[2])
-                f.write(f'''Proc {proc.pid}:
-Deadline misses:       {proc.stats[0]}
-Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/total_time*100,2)} %)
-Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/total_time*100,2)} %)\n''')
-                if timeline:
-                    f.write(("-------- Timeline --------\n"))
-                    for iter in proc.stats[3]:
-                        f.write(f"{iter}")
-                f.write("---------------------\n")
-#{"Timeline: " + str(proc.stats[3])[:].strip() if timeline else ""}\n---------------------\n''')
-    # Print stats
-    else:
-        print("------- Stats -------")
-        for proc in procs:
-            print(f'''Proc {proc.pid}:
-Deadline misses:       {proc.stats[0]}
-Scheduled periods:     {proc.stats[1]} ({round(proc.stats[1]/t*100,2)} %)
-Not-scheduled periods: {proc.stats[2]} ({round(proc.stats[2]/t*100,2)} %)\n''')
-            if timeline:
-                print("-------- Timeline --------\n")
-                for iter in proc.stats[3]:
-                    print(f"{iter}")
-            print("---------------------\n")
+        
 
 
 

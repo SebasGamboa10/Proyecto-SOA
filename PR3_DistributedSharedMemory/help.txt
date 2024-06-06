@@ -1,0 +1,9 @@
+
+refs: [[1,r],[1,r],[1,w]]
+cpu      0     1     2
+
+line 1: config: total_pages, frames/cpu, N_cpus
+line2: format: cpu, page, mode
+
+refs_cpu0 = []
+             0,1

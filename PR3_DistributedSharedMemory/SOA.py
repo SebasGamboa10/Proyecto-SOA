@@ -44,16 +44,25 @@ class CPU:
             # stats hit
             self.stats[1] += 1
             self.arrival_times[self.pages.index(page)] = time
-        print(f'page_refs = {page_refs}')
-        print('-------------------------------')
+        output_info(f'page_refs = {page_refs}')
+        output_info('-------------------------------')
     
     #TODO: STORE
         
 # NO BORRAR
 page_refs = [] # NO BORRAR 
+OUTPUT_FILENAME = 0
 # NO BORRAR
  
 # System functions
+
+def output_info(message, new = False):
+    if OUTPUT_FILENAME == 0:
+        print(message)
+    else:
+        _type = "w" if new else "+a"
+        with open(OUTPUT_FILENAME, _type) as file:
+            file.write(f"{str(message)}\n")
 
 def recover_page(cpu_id, page, config):
     # find page in CPUs
@@ -123,7 +132,7 @@ def optimal(cpu, page, time):
 
     for ref in range(len(cpu.refs)):
         cpu.refs[ref] = int(cpu.refs[ref])
-    print(f'OPTIMAL: {cpu.refs}')
+    output_info(f'OPTIMAL: {cpu.refs}')
 
     for page_aux in cpu.pages:
         # if the page will be referenced again
@@ -151,10 +160,9 @@ def optimal(cpu, page, time):
     if replaced == False:
         # remove page 
         #index = ref_times.index(max(ref_times))
-        print(ref_times)
         #index = ref_times[max(ref_times)] 
         index = cpu.refs[max(ref_times)] # index es una página!! no un índice.
-        print(f'ref_times = {ref_times}, index={index}, page_refs={page_refs}')
+        output_info(f'ref_times = {ref_times}, index={index}, page_refs={page_refs}')
         # system refs
 
         #page_refs[page_refs.index(cpu.pages[index])][0].remove(cpu.id)
@@ -174,7 +182,7 @@ def optimal(cpu, page, time):
             
 def print_cpus(cpus):
     for cpu in cpus:
-        print(f"(ID: {cpu.id}, pages: {cpu.pages}, arrival times: {cpu.arrival_times}), stats: {cpu.stats}")  
+        output_info(f"(ID: {cpu.id}, pages: {cpu.pages}, arrival times: {cpu.arrival_times}), stats: {cpu.stats}")  
     
 ### TODO: Config system and read from file.
 
@@ -239,6 +247,7 @@ def configure_system(argv):
     
     # cpu input
     cpus = []
+    path = None
     arg_index = (argv.index('-i') if '-i' in argv else False)
     if arg_index:
         path = argv[arg_index + 1]
@@ -367,6 +376,9 @@ def main(argv=None):
         cpus = configure_system(argv)
     else:
         config = configure_system(sys.argv)
+        global OUTPUT_FILENAME 
+        OUTPUT_FILENAME = config[2]
+        output_info(config, True)
         print(config)
         # if using input file
         if config[-1]:

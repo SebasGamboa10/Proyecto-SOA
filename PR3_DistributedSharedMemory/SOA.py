@@ -18,7 +18,7 @@ class CPU:
             self.refs.pop(0)
         
         # system recovers page
-        # CPU comunica a otros CPU que invaliden sus copias locales de la página y espera confirmación. 
+        # Page Invalidations TODO: stats[2]
         if bool(config[-2]) == False or (bool(config[-2]) == True and mode=='w'):
             recover_page(self.id, page, config)
             if (self.id not in page_refs[page][0]):
@@ -70,6 +70,9 @@ def recover_page(cpu_id, page, config):
                 # system refs
                 page_refs[page][0] = [] # remove references to all CPUs that have this page loaded
                 #page_refs[page][1] = 'w' # page is now in writing mode
+
+                # stats
+                cpu.stats[2] += 1
             
 
 def replace_page(cpu, page, config, time):

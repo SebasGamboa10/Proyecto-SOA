@@ -41,12 +41,14 @@ class CPU:
             # else use page replacement alg
             else:
                 replace_page(self, page, config, time)
+
             # keep track of frame index
             for i in range(config[-3]):
                 if i in self.page_indexes:
                     pass
                 else:
                     self.page_indexes.append(i)
+                    break
         else:
             # stats hit
             self.stats[1] += 1

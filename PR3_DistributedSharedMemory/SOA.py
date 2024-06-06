@@ -4,38 +4,37 @@ import sys
 import os.path
 
 class CPU:
-    def __init__(self, id):
+    def __init__(self, id, refs=[]):
         self.id = id
         self.pages = []
         self.arrival_times = [] # indexed in the same order as pages.]
         #self.invalid_pages = []
         self.stats = [0,0,0] # page-faults, hits, invalidations 
-        self.refs = [[]] # all future refs/ check if this declaration is ok
+        self.refs = refs # all future refs/ check if this declaration is ok
 
     def ref(self, page, config, time, mode='w'):
+        
+        if config[1] == 'OPTIMAL' and len(self.refs) > 0:
+            self.refs.pop(0)
+        
         # system recovers page
         # CPU comunica a otros CPU que invaliden sus copias locales de la página y espera confirmación. 
-        print(f'REF page: {page}, d: {config[-2]}')
         if bool(config[-2]) == False or (bool(config[-2]) == True and mode=='w'):
-            print(f'REF recover')
             recover_page(self.id, page, config)
             if (self.id not in page_refs[page][0]):
                 page_refs[page][0].append(self.id) # the page_refs_mode was set inside the recover page function.
             page_refs[page][1] = 'w'
         else:
-            print(f'REF no recover')
             if (self.id not in page_refs[page][0]):
                 page_refs[page][0].append(self.id)
             page_refs[page][1] = 'r'
 
         # if page not in CPU
         if not page in self.pages:
-            print('hola1')
             # stats page-fault
             self.stats[0] += 1
             # if theres space in CPU
             if len(self.pages) < config[-4]:
-                print('hola2')
                 self.pages.append(page)
                 self.arrival_times.append(time) 
             # else use page replacement alg
@@ -46,16 +45,13 @@ class CPU:
             self.stats[1] += 1
             self.arrival_times[self.pages.index(page)] = time
         print(f'page_refs = {page_refs}')
+        print('-------------------------------')
     
     #TODO: STORE
         
-# Globals -> move to config?
-#cpus = []
-#pages = []
-#time = 0
-#alg = 'FIFO'
-page_refs = [] # [1,3],[r] # aunque el id lo podemos sacar del indice y ya
-#pages_per_node = 2
+# NO BORRAR
+page_refs = [] # NO BORRAR 
+# NO BORRAR
  
 # System functions
 
@@ -82,7 +78,7 @@ def replace_page(cpu, page, config, time):
         FIFO(cpu, page, time)
     elif config[1]  == 'LRU':
         LRU(cpu, page, time)
-    elif config[1]  == 'optimal':
+    elif config[1]  == 'OPTIMAL':
         optimal(cpu, page, time)
 
 def FIFO(cpu, page, time):
@@ -121,6 +117,11 @@ def optimal(cpu, page, time):
     # find the page that won't be used for the longest period of time
     ref_times = []
     replaced = False
+
+    for ref in range(len(cpu.refs)):
+        cpu.refs[ref] = int(cpu.refs[ref])
+    print(f'OPTIMAL: {cpu.refs}')
+
     for page_aux in cpu.pages:
         # if the page will be referenced again
         if page_aux in cpu.refs:
@@ -133,23 +134,37 @@ def optimal(cpu, page, time):
             replaced = True
 
             # system refs
-            page_refs[page_refs.index(cpu.pages.index(page_aux))][0].remove(cpu.id)
+            #page_refs[page_refs.index(cpu.pages.index(page_aux))][0].remove(cpu.id)
+            page_refs[page_aux][0].remove(cpu.id)
+            #TODO: if qued[o vacio, quitamos la r y w]
 
-            cpu.arrival_times.remove(cpu.pages.index(page_aux))
+            cpu.arrival_times.pop(cpu.pages.index(page_aux))
             cpu.pages.remove(page_aux)
             # add new page
             cpu.pages.append(page)
             cpu.arrival_times.append(time)
             break
-
+    
     if replaced == False:
-        # remove page
-        index = ref_times.index(max(ref_times))
+        # remove page 
+        #index = ref_times.index(max(ref_times))
+        print(ref_times)
+        #index = ref_times[max(ref_times)] 
+        index = cpu.refs[max(ref_times)] # index es una página!! no un índice.
+        print(f'ref_times = {ref_times}, index={index}, page_refs={page_refs}')
         # system refs
-        page_refs[page_refs.index(cpu.pages[index])][0].remove(cpu.id)
 
-        cpu.arrival_times.pop(index)
-        cpu.pages.pop(index)
+        #page_refs[page_refs.index(cpu.pages[index])][0].remove(cpu.id)
+        #page_refs[page_refs.index(ref_times[index])][0].remove(cpu.id)
+        page_refs[index][0].remove(cpu.id)
+
+        #cpu.arrival_times.pop(index)
+        #cpu.arrival_times.pop(cpu.pages.index(ref_times[index]))
+        cpu.arrival_times.pop(cpu.pages.index(index))
+        
+        #cpu.pages.remove(ref_times[index])
+        cpu.pages.remove(index)
+        #cpu.pages.pop(index)
         # add new page
         cpu.pages.append(page)
         cpu.arrival_times.append(time)
@@ -165,8 +180,11 @@ def configure_system(argv):
     print("Configuración del sistema:")
 
     # total pages
-    total_pages = int(input("Ingrese el número total de páginas del sistema: "))
-    pages_per_node = int(input("Ingrese el número de frames por CPU: "))
+    total_pages = 0
+    pages_per_node = 0
+    if (not '-i' in argv):
+        total_pages = int(input("Ingrese el número total de páginas del sistema: "))
+        pages_per_node = int(input("Ingrese el número de frames por CPU: "))
     # Alg selection
     arg_index = (argv.index('-a') if '-a' in argv else False)
     if arg_index:
@@ -216,30 +234,24 @@ def configure_system(argv):
         
     '''
     
-    # Proc input
+    # cpu input
+    cpus = []
     arg_index = (argv.index('-i') if '-i' in argv else False)
     if arg_index:
         path = argv[arg_index + 1]
         arg_index = None
-        cpus = read_input_file(path, alg)
+        #cpus = read_input_file(path, alg)
     else:
         use_input_file = int(input("Desea leer procesos de un archivo? (1/0): "))
         if use_input_file:
-            cpus = read_input_file(str(input("Ingrese el nombre del archivo: ")), alg)
+            path = input("Ingrese el nombre del archivo: ")
+            #cpus = read_input_file(str(input("Ingrese el nombre del archivo: ")), alg)
         else:
-            cpus = []
             while True:
                 flag = int(input("Desea agregar un cpu? (1/0): "))
                 if flag:
-                    if alg == ("FIFO"):
-                        id = int(input("Ingrese el id del cpu: "))
-                        cpus.append(CPU(id))
-                    elif alg == ("LRU"):
-                        id = int(input("Ingrese el id del cpu: "))
-                        cpus.append(CPU(id))
-                    else: #optimo
-                        id = int(input("Ingrese el id del cpu: "))
-                        cpus.append(CPU(id))
+                    id = int(input("Ingrese el id del cpu: "))
+                    cpus.append(CPU(id))
                     print ("Configurado con exito.")
                 else:
                     break
@@ -265,27 +277,44 @@ def configure_system(argv):
         d = int(input("Desea replicación?: "))
         
 
-    return (cpus, alg, output_file, pages_per_node, total_pages, d, use_input_file)
+    return (cpus, alg, output_file, pages_per_node, total_pages, d, path)
 
-def read_input_file(path, alg):
-    procs = []
+def get_total_refs_from_file(path):
+    total_refs = []
     if (os.path.isfile('./'+path)):
         f = open(path, "r")
+        line = f.readline().strip().split(',')
+        cpu_count = int(line[-1])
+        total_pages = int(line[0])
+        pages_per_node = int(line[1])
+        for i in range(cpu_count):
+            total_refs.append([])
         while True:
             line = f.readline().strip().split(',')
-            #print(line)
-            if  len(line) < 2:
+            if len(line) < 2:
                 break
-            line = [int(i) for i in line] # str to int
-            if alg == ("RMS"):
-                procs.append(Process(line[0],0,line[1],line[2]))
-            elif alg == ("EDF-p"):
-                procs.append(Process(line[0],line[1],line[2],line[3]))
-            else: #EDF-a
-                procs.append(Process(line[0],0,line[1],line[2],line[3],line[4]))
+            total_refs[int(line[0])].append(line[1])
+    return total_refs, total_pages, pages_per_node
+
+
+def read_input_file(config, time):
+    if (os.path.isfile('./'+config[-1])):
+        f = open(config[-1], "r")
+        line = f.readline() # to ignore config line
+        while True:
+            #line = f.readline().strip().split(',')
+            #print(line)
+            line = f.readline().strip()
+            if len(line.split(',')) < 2:
+                break
+            #line = [int(i) for i in line] # str to int
+            step(config,line,time)
+            time += 1
+            # llamar ref del CPU correcto.
+            #procs.append(Process(line[0],0,line[1],line[2]))
     else:
         print('No se encontró el archivo')
-    return procs
+    #return procs
 
 def print_help():
     print('''
@@ -338,7 +367,23 @@ def main(argv=None):
         print(config)
         # if using input file
         if config[-1]:
-            print('0')
+            # create ref list. list of lists for each cpu and ref.
+            if config[1] == 'OPTIMAL':
+                total_refs, total_pages, pages_per_node = get_total_refs_from_file(config[-1])
+                config = list(config)
+                config[-3] = total_pages
+                config[-4] = pages_per_node
+                # create cpus
+                cpus = []
+                for i in range(len(total_refs)):
+                    cpus.append(CPU(i,total_refs[i]))
+                config[0] = cpus
+
+                #page_refs = [] 
+                for i in range(int(config[-3])):
+                    page_refs.append([[], ''])
+                # run simulation
+                read_input_file(config,time)
         else:
             # create pages.
             pages_refs = [] 

@@ -20,11 +20,12 @@ class CPU:
         
         # system recovers page
         # Page Invalidations TODO: stats[2]
-        if bool(config[-2]) == False or (bool(config[-2]) == True and mode=='w'):
+        repl = int(config[-2])
+        if bool(repl) == False or (bool(repl) == True and mode=='w'):
             recover_page(self.id, page, config)
             if (self.id not in page_refs[page][0]):
                 page_refs[page][0].append(self.id) # the page_refs_mode was set inside the recover page function.
-            page_refs[page][1] = 'w'
+            page_refs[page][1] = 'w' if mode == 'w' else 'r'
         else:
             if (self.id not in page_refs[page][0]):
                 page_refs[page][0].append(self.id)
@@ -61,6 +62,7 @@ class CPU:
 # NO BORRAR
 page_refs = [] # NO BORRAR 
 OUTPUT_FILENAME = 0
+IS_UI = False
 # NO BORRAR
  
 # System functions
@@ -163,8 +165,8 @@ def optimal(cpu, page, time):
             #TODO: if qued[o vacio, quitamos la r y w]
 
             cpu.arrival_times.pop(cpu.pages.index(page_aux))
-            cpu.pages.remove(page_aux)
             cpu.page_indexes.pop(cpu.pages.index(page_aux))
+            cpu.pages.remove(page_aux)
                 
             # add new page
             cpu.pages.append(page)
@@ -173,10 +175,10 @@ def optimal(cpu, page, time):
     
     if replaced == False:
         # remove page 
-        #index = ref_times.index(max(ref_times))
+        #index = ref_times.index(max(ref_times))s
         #index = ref_times[max(ref_times)] 
         index = cpu.refs[max(ref_times)] # index es una página!! no un índice.
-        output_info(f'ref_times = {ref_times}, index={index}, page_refs={page_refs}')
+        output_info(f'ref_times = {ref_times}')
         # system refs
 
         #page_refs[page_refs.index(cpu.pages[index])][0].remove(cpu.id)
@@ -196,7 +198,10 @@ def optimal(cpu, page, time):
             
 def print_cpus(cpus):
     for cpu in cpus:
-        output_info(f"(ID: {cpu.id}, pages: {cpu.pages}, arrival times: {cpu.arrival_times}), stats: {cpu.stats}")  
+        page_indexes = ""
+        if IS_UI:
+            page_indexes = f", page_indexes: {cpu.page_indexes}"
+        output_info(f"(ID: {cpu.id}, pages: {cpu.pages}, arrival times: {cpu.arrival_times}{page_indexes}), stats: {cpu.stats}")  
     
 ### TODO: Config system and read from file.
 
@@ -398,6 +403,7 @@ def main(argv=None):
         print_help()
         sys.exit()
 
+    global IS_UI
     IS_UI = '--ui' in sys.argv
     
     time = 0

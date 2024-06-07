@@ -1,0 +1,29 @@
+([], 'OPTIMAL', '0', 0, 0, '1', 'refs.txt')
+page_refs = [[[0], 'r'], [[], ''], [[], '']]
+-------------------------------
+(ID: 0, pages: [0], arrival times: [0]), stats: [1, 0, 0]
+(ID: 1, pages: [], arrival times: []), stats: [0, 0, 0]
+(ID: 2, pages: [], arrival times: []), stats: [0, 0, 0]
+page_refs = [[[0], 'r'], [[0], 'r'], [[], '']]
+-------------------------------
+(ID: 0, pages: [0, 1], arrival times: [0, 1]), stats: [2, 0, 0]
+(ID: 1, pages: [], arrival times: []), stats: [0, 0, 0]
+(ID: 2, pages: [], arrival times: []), stats: [0, 0, 0]
+OPTIMAL: [0, 1]
+ref_times = [0, 1], index=1, page_refs=[[[0], 'r'], [[0], 'r'], [[0], 'r']]
+page_refs = [[[0], 'r'], [[], 'r'], [[0], 'r']]
+-------------------------------
+(ID: 0, pages: [0, 2], arrival times: [0, 2]), stats: [3, 0, 0]
+(ID: 1, pages: [], arrival times: []), stats: [0, 0, 0]
+(ID: 2, pages: [], arrival times: []), stats: [0, 0, 0]
+page_refs = [[[0], 'r'], [[], 'r'], [[0], 'r']]
+-------------------------------
+(ID: 0, pages: [0, 2], arrival times: [3, 2]), stats: [3, 1, 0]
+(ID: 1, pages: [], arrival times: []), stats: [0, 0, 0]
+(ID: 2, pages: [], arrival times: []), stats: [0, 0, 0]
+OPTIMAL: []
+page_refs = [[[], 'r'], [[0], 'r'], [[0], 'r']]
+-------------------------------
+(ID: 0, pages: [2, 1], arrival times: [2, 4]), stats: [4, 1, 0]
+(ID: 1, pages: [], arrival times: []), stats: [0, 0, 0]
+(ID: 2, pages: [], arrival times: []), stats: [0, 0, 0]

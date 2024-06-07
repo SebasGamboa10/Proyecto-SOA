@@ -57,7 +57,7 @@ OUTPUT_FILENAME = 0
 # System functions
 
 def output_info(message, new = False):
-    if OUTPUT_FILENAME == 0:
+    if int(OUTPUT_FILENAME) == 0:
         print(message)
     else:
         _type = "w" if new else "+a"
@@ -193,7 +193,24 @@ def configure_system(argv):
     # total pages
     total_pages = 0
     pages_per_node = 0
-    if (not '-i' in argv):
+
+    cpus = []
+    
+    if ('--ui' in argv):
+        # total pages
+        if ('-p' in argv):
+            total_pages = int(argv[argv.index('-p') + 1])
+        # pages_per_node
+        if ('-q' in argv):
+            pages_per_node = int(argv[argv.index('-q') + 1])
+        # pages_per_node
+        if ('-n' in argv):
+            total_cpus = int(argv[argv.index('-n') + 1])
+            for i in range(total_cpus):
+                cpus.append(CPU(i))
+
+
+    if (not '-i' in argv and '--ui' not in argv):
         total_pages = int(input("Ingrese el número total de páginas del sistema: "))
         pages_per_node = int(input("Ingrese el número de frames por CPU: "))
     # Alg selection
@@ -245,8 +262,6 @@ def configure_system(argv):
         
     '''
     
-    # cpu input
-    cpus = []
     path = None
     arg_index = (argv.index('-i') if '-i' in argv else False)
     if arg_index:
@@ -291,14 +306,14 @@ def configure_system(argv):
 
     return (cpus, alg, output_file, pages_per_node, total_pages, d, path)
 
-def get_total_refs_from_file(path):
+def get_total_refs_from_file(path, config, IS_UI):
     total_refs = []
     if (os.path.isfile('./'+path)):
         f = open(path, "r")
         line = f.readline().strip().split(',')
-        cpu_count = int(line[-1])
-        total_pages = int(line[0])
-        pages_per_node = int(line[1])
+        cpu_count = int(line[-1]) if not IS_UI else len(config[0])
+        total_pages = int(line[0]) if not IS_UI else config[-3]
+        pages_per_node = int(line[1]) if not IS_UI else config[-4]
         for i in range(cpu_count):
             total_refs.append([])
         while True:
@@ -368,6 +383,8 @@ def main(argv=None):
     if '-h' in sys.argv: 
         print_help()
         sys.exit()
+
+    IS_UI = '--ui' in sys.argv
     
     time = 0
     # get args from terminal or GUI
@@ -384,7 +401,7 @@ def main(argv=None):
         if config[-1]:
             # create ref list. list of lists for each cpu and ref.
             if config[1] == 'OPTIMAL':
-                total_refs, total_pages, pages_per_node = get_total_refs_from_file(config[-1])
+                total_refs, total_pages, pages_per_node = get_total_refs_from_file(config[-1], config, IS_UI)
                 config = list(config)
                 config[-3] = total_pages
                 config[-4] = pages_per_node
@@ -394,11 +411,11 @@ def main(argv=None):
                     cpus.append(CPU(i,total_refs[i]))
                 config[0] = cpus
 
-                #page_refs = [] 
-                for i in range(int(config[-3])):
-                    page_refs.append([[], ''])
-                # run simulation
-                read_input_file(config,time)
+            #page_refs = [] 
+            for i in range(int(config[-3])):
+                page_refs.append([[], ''])
+            # run simulation
+            read_input_file(config,time)
         else:
             # create pages.
             pages_refs = [] 

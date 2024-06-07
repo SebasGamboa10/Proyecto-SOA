@@ -344,7 +344,8 @@ def get_total_refs_from_file(path, config, IS_UI):
 
 
 def read_input_file(config, time):
-    if (os.path.isfile('./'+config[-1])):
+    filepath = './'+config[-1] if not IS_UI else config[-1]
+    if (os.path.isfile(filepath)):
         f = open(config[-1], "r")
         line = f.readline() # to ignore config line
         while True:
@@ -359,7 +360,7 @@ def read_input_file(config, time):
             # llamar ref del CPU correcto.
             #procs.append(Process(line[0],0,line[1],line[2]))
     else:
-        print('No se encontró el archivo')
+        print(f'No se encontró el archivo')
     #return procs
 
 def print_help():

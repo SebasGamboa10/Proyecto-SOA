@@ -46,7 +46,11 @@
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
-    "test": "jest"
+    "test": "jest",
+    "compile": "electron-webpack",
+    "builde": "react-scripts build",
+    "ebuild": "electron-builder --win portable --publish never ",
+    "fbuild": "npm run build && npm run ebuild"
   },
   "browserslist": [],
   "prettier": {
@@ -173,6 +177,7 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
+    "extends": null,
     "productName": "ElectronReact",
     "appId": "org.erb.ElectronReact",
     "asar": true,

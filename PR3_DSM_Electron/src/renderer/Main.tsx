@@ -107,9 +107,10 @@ const runPythonScript = async () => {
     const repl = replicacion ? 1 : 0
     const filename_refs = interactiveMode ? "interactive.txt" : filename 
     ipcRenderer.sendMessage('python-script', ["SOA.py", '--ui', '-a', algoritmo_simulacion, '-d',
-     repl, '-o', 0, '-i', filename_refs, '-p', paginas_totales, '-q', paginas_nodo, '-n', cantidad_nodos]);
+     repl, '-o', 0, '-i', `${filename_refs}`, '-p', paginas_totales, '-q', paginas_nodo, '-n', cantidad_nodos]);
     ipcRenderer.once('python-script', (arg) => {
       // eslint-disable-next-line no-console
+      console.log(arg)
       const page_refs = extractLinesWithPageRefs(arg)
       const cpus = extractLinesWithIDs(arg)
       const converted = page_refs.map(convertPageRefsToLists)
@@ -187,7 +188,9 @@ const runPythonScript = async () => {
   const create_nodes = () => {
     const nodos = []
 
-    const current_ref = time !== -1 ? refs[time] : []
+
+
+    const current_ref = time !== -1 && refs.length > 0 ? refs[time] : []
 
 
     let nodes_p = []
@@ -275,6 +278,7 @@ const runPythonScript = async () => {
     setCommandCurrentIdx(_commands.length-1)
     ipcRenderer.sendMessage('python-script', ["util.py", "interactive.txt", "0,0,0", ..._commands]);
     ipcRenderer.once('python-script', (arg) => {
+      console.log(arg)
       runPythonScript()
     });
 

@@ -39,13 +39,17 @@ ipcMain.on('python-script', async (event, arg) => {
     console.log(`Received, python script output ${result} `);
     event.reply('python-script', result);
   } catch (error) {
-    console.log(error)
+    event.reply('python-script', error);
   }
   
 });
 
 
 function runPythonScript(args) {
+  if (args[0] === "SOA.py") {
+    args[9] = `${process.env.PORTABLE_EXECUTABLE_DIR}\\${args[9]}`
+  }
+  args[0] = `${process.env.PORTABLE_EXECUTABLE_DIR}\\${args[0]}`
   return new Promise((resolve, reject) => {
     const python = spawn('python', args);
     let output = '';
@@ -125,7 +129,6 @@ const createWindow = async () => {
     icon: getAssetPath('icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
-      devTools: false,
       nodeIntegration: true,
       contextIsolation: true,  
       preload: app.isPackaged

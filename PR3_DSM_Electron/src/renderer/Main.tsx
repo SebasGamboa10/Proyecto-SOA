@@ -229,9 +229,9 @@ const runPythonScript = async () => {
       stats.push(
           <div>
             <b>{`Nodo ${i}`}</b>
-            <p>Page-faults: {cpus_stats[i][0]}</p>
-            <p>Hits: {cpus_stats[i][1]}</p>
-            <p>Invalidations: {cpus_stats[i][2]}</p>
+            <p title="Page-fault: Se da cuando un CPU desea referenciar una página y no la encuentra en ninguno de sus frames, por lo que debe buscarla en la memoria virtual y utilizar un algoritmo de reemplazo si todos sus frames contienen una página.">Page-faults: {cpus_stats[i][0]}</p>
+            <p title="Hit: Se da cuando un CPU desea referenciar una página y la encuentra en almacenada en uno de sus frames, por lo que no es necesario que realicé una búsqueda en la memoria virtual ni utilice algoritmos de reemplazo de páginas.">Hits: {cpus_stats[i][1]}</p>
+            <p title="Page-invalidation: Se da cuando un CPU desea referenciar una página en modo de escritura (o en un sistema que no permite replicación) y esta se encuentra referenciada por otro(s) CPU, por lo que el CPU debe comunicar a los otros CPUs que invaliden sus copias locales de la página de interés. Para el caso de esta simulación, los CPUs invalidan páginas eliminándo sus copias locales.">Invalidations: {cpus_stats[i][2]}</p>
           </div>
         )
     }
@@ -239,7 +239,7 @@ const runPythonScript = async () => {
   }
 
   const handleFileChange = (event) => {
-    
+      
       const file = event.target.files[0];
       cleanRefs()
       setFilename(file.name)
@@ -258,7 +258,6 @@ const runPythonScript = async () => {
   
 
   const correrSimulacion = () => {
-    document.getElementById('upload-id').value = ''
     setCommandCurrentIdx(stop_at)
     runPythonScript()
   }
@@ -310,7 +309,7 @@ const runPythonScript = async () => {
 
   const create_total = () => {
     const totals = sumAtEachIndex(cpus_stats)
-    return <div>
+    return <div title='Page-faults, Hits y Page-Invalidations'>
       {`(PF: ${totals[0]} - H: ${totals[1]} -  I: ${totals[2]})`}
     </div>
   }
@@ -347,12 +346,12 @@ const runPythonScript = async () => {
           <div className='input-config'>
             Algoritmo de simulación
             <select value={algoritmo_simulacion} onChange={(e) => cambiarConfig(e, setAlgoritmoSimmulacion)} name="algo" id="algo">
-              <option value="LRU">LRU</option>
-              <option value="OPTIMAL">Óptimo</option>
-              <option value="FIFO">FIFO</option>
+              <option title="LRU: Algoritmo de reemplazo Least Recently Used, a la hora de realizar un reemplazo de página en un CPU, el frame utilizado será el que fue utilizado por última vez una mayor cantidad de iteraciones (unidades de tiempo) atrás." value="LRU">LRU</option>
+              <option title="Optimal: Algoritmo de reemplazo óptimo,  a la hora de realizar un reemplazo de página en un CPU, el frame utilizado será el que contenga la página que será utilizada dentro de la mayor cantidad de iteraciones (unidades de tiempo) adelate." value="OPTIMAL">Óptimo</option>
+              <option title="FIFO: Algoritmo de reemplazo First-In-First-Out, a la hora de realizar un remplazo de página en un CPU, el frame utilizado será el que ha alocado una página una mayor cantidad de iteraciones (unidades de tiempo) atrás." value="FIFO">FIFO</option>
             </select>
           </div>
-          <div className='input-config'>
+          <div className='input-config' title='Replicación: Para mejorar el rendimiento del sistema DSM básico, esta opción permite que las páginas que son read-only (referenciadas en modo lectura) puedan ser copiadas en tantos CPUs como las requieran, sin necesidad de invalidarlas cada vez que otro CPU desea referenciarlas.'>
             Replicación
             <input type='checkbox' checked={replicacion}  onChange={(e) => {
               cleanRefs()
@@ -363,7 +362,7 @@ const runPythonScript = async () => {
       </div>
 
       <div>
-        <h2>Espacio virtual</h2>
+        <h2 title="Espacio Virtual: Representa la memoria virtual del sistema, accesible por todos los CPUs que deseen referenciar una página en modo de lectura o escritura.">Espacio virtual</h2>
         {create_pages()}
       </div>
 
@@ -374,20 +373,24 @@ const runPythonScript = async () => {
       <div>
         <h2>Referencias</h2>
         <div className='ref-control-panel'>
-          <button onClick={(e) => { fileInputRef.current.click();}} disabled={interactiveMode} className='upload-button'><BsUpload style={{padding: "0 1rem 0 0"}} size="1.5em" />Subir Archivo</button>
+          <button onClick={(e) => { 
+            document.getElementById('upload-id').value = ''
+            fileInputRef.current.click()
+          }} disabled={interactiveMode} className='upload-button'><BsUpload style={{padding: "0 1rem 0 0"}} size="1.5em" />Subir Archivo</button>
           <input
             type="file"
+            id='upload-id'
             ref={fileInputRef}
             style={{ display: 'none' }}
             onChange={(handleFileChange)}
           />
           <button className='upload-button' disabled={interactiveMode} onClick={correrSimulacion}><BsCaretRightFill style={{padding: "0 1rem 0 0"}} size="1.5em" /> Ejecutar</button>
           <div style={{fontSize: 'small', paddingRight: '0.5rem'}}>Detenerse en</div>
-          <input id='upload-id' value={stop_at} disabled={interactiveMode} onChange={(e) => setStopAt(parseInt(e.target.value))} type='number'></input>
-          <div style={{fontSize: 'small', padding: '0 0.5rem'}}>Agregar paso (interactivo)</div>
+          <input value={stop_at} disabled={interactiveMode} onChange={(e) => setStopAt(parseInt(e.target.value))} type='number'></input>
+          <div style={{fontSize: 'small', padding: '0 0.5rem'}}>Agregar paso ({"<Nodo>,<Pagina>,<Modo> e.g. 2,4,r"})</div>
           <input disabled={!interactiveMode} style={{marginRight: '1rem'}} value={interactive} onChange={(e) => setInteractive(e.target.value)}></input>
           <button disabled={!interactiveMode} className='upload-button' onClick={correrSimulacionInteractiva}><BsCaretRightFill style={{padding: "0 1rem 0 0"}} size="1.5em" /> Insertar</button>
-          <div style={{fontSize: 'small', padding: '0 0.5rem'}}>Modo Interactivo</div>
+          <div title="Simular paso por paso" style={{fontSize: 'small', padding: '0 0.5rem'}}>Modo Interactivo</div>
           <input type='checkbox' checked={interactiveMode}  onChange={(e) => changeInteractiveMode(e.target.checked)} />
         </div>
       </div>

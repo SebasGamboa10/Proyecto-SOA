@@ -13,3 +13,5 @@ To package apps for the local platform:
 ```bash
 npm run package
 ```
+
+npx cross-env DEBUG_PROD=true npm run fbuild

@@ -49,6 +49,11 @@ function runPythonScript(args) {
   if (args[0] === "SOA.py") {
     args[9] = `${process.env.PORTABLE_EXECUTABLE_DIR}\\${args[9]}`
   }
+
+  if (args[0] === "util.py") {
+    args[1] = `${process.env.PORTABLE_EXECUTABLE_DIR}\\${args[1]}`
+  }
+
   args[0] = `${process.env.PORTABLE_EXECUTABLE_DIR}\\${args[0]}`
   return new Promise((resolve, reject) => {
     const python = spawn('python', args);

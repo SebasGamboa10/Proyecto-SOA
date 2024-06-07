@@ -30,6 +30,9 @@ export function Main() {
     setIndicesPaginas([])
     setTime(-1)
     setCpusStats([])
+    setFilename('')
+    setStopAt(-1)
+    setFileCommands([])
   }
 
 const extractLinesWithPageRefs = (text) => {
@@ -317,9 +320,7 @@ const runPythonScript = async () => {
   const changeInteractiveMode = (change) => {
     cleanRefs()
     setInteractiveMode(change)
-    setFilename('')
-    setStopAt(-1)
-    setFileCommands([])
+    
   }
 
   return (

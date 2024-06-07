@@ -8,6 +8,7 @@ class CPU:
         self.id = id
         self.pages = []
         self.arrival_times = [] # indexed in the same order as pages.]
+        self.page_indexes = []
         #self.invalid_pages = []
         self.stats = [0,0,0] # page-faults, hits, invalidations 
         self.refs = refs # all future refs/ check if this declaration is ok
@@ -40,6 +41,14 @@ class CPU:
             # else use page replacement alg
             else:
                 replace_page(self, page, config, time)
+
+            # keep track of frame index
+            for i in range(config[-3]):
+                if i in self.page_indexes:
+                    pass
+                else:
+                    self.page_indexes.append(i)
+                    break
         else:
             # stats hit
             self.stats[1] += 1
@@ -75,6 +84,7 @@ def recover_page(cpu_id, page, config):
                 # recover pages from cpu.
                 cpu.pages.pop(i)
                 cpu.arrival_times.pop(i)
+                cpu.page_indexes.pop(i)
 
                 # system refs
                 page_refs[page][0] = [] # remove references to all CPUs that have this page loaded
@@ -103,6 +113,7 @@ def FIFO(cpu, page, time):
     # remove first element
     cpu.pages.pop(0)
     cpu.arrival_times.pop(0)
+    cpu.page_indexes.pop(0)
 
     # add new page at the end of the list
     cpu.pages.append(page)
@@ -120,7 +131,8 @@ def LRU(cpu, page, time):
 
     cpu.pages.pop(lru)
     cpu.arrival_times.pop(lru)
-
+    cpu.page_indexes.pop(lru)
+                
     # add new element at the end of the list
     cpu.pages.append(page)
     cpu.arrival_times.append(time)
@@ -152,6 +164,8 @@ def optimal(cpu, page, time):
 
             cpu.arrival_times.pop(cpu.pages.index(page_aux))
             cpu.pages.remove(page_aux)
+            cpu.page_indexes.pop(cpu.pages.index(page_aux))
+                
             # add new page
             cpu.pages.append(page)
             cpu.arrival_times.append(time)

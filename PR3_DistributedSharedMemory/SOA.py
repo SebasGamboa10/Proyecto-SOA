@@ -44,12 +44,15 @@ class CPU:
                 replace_page(self, page, config, time)
 
             # keep track of frame index
-            for i in range(config[-3]):
+            # config[-3] = total pages
+            for i in range(int(config[-3])):
                 if i in self.page_indexes:
                     pass
                 else:
                     self.page_indexes.append(i)
                     break
+            print(f'CPU: {self.id} page indexes: {self.page_indexes}')
+
         else:
             # stats hit
             self.stats[1] += 1
@@ -153,7 +156,7 @@ def optimal(cpu, page, time):
         if page_aux in cpu.refs:
             # record when the page will be referenced next
             ref_times.append(cpu.refs.index(page_aux))
-        
+            
         # else remove that page
         elif replaced == False:
             # remove page that won't be used again
@@ -162,8 +165,9 @@ def optimal(cpu, page, time):
             # system refs
             #page_refs[page_refs.index(cpu.pages.index(page_aux))][0].remove(cpu.id)
             page_refs[page_aux][0].remove(cpu.id)
-            #TODO: if qued[o vacio, quitamos la r y w]
-
+            if len(page_refs[page_aux][0]) == 0:
+                page_refs[(page_aux)][1] = ''
+            
             cpu.arrival_times.pop(cpu.pages.index(page_aux))
             cpu.page_indexes.pop(cpu.pages.index(page_aux))
             cpu.pages.remove(page_aux)
@@ -184,11 +188,13 @@ def optimal(cpu, page, time):
         #page_refs[page_refs.index(cpu.pages[index])][0].remove(cpu.id)
         #page_refs[page_refs.index(ref_times[index])][0].remove(cpu.id)
         page_refs[index][0].remove(cpu.id)
+        if len(page_refs[page_aux][0]) == 0:
+            page_refs[(page_aux)][1] = ''
 
         #cpu.arrival_times.pop(index)
         #cpu.arrival_times.pop(cpu.pages.index(ref_times[index]))
         cpu.arrival_times.pop(cpu.pages.index(index))
-        
+        cpu.page_indexes.pop(cpu.pages.index(index))
         #cpu.pages.remove(ref_times[index])
         cpu.pages.remove(index)
         #cpu.pages.pop(index)
